@@ -38,12 +38,42 @@ from telegram_bot.handlers import (
     handle_text_input,
 )
 
+import os
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
 )
 logger = logging.getLogger("PrintMasterBot")
+
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    """Responds to cloud provider health check pings (e.g. Render Free Web Service)."""
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"PrintMaster A4 Telegram Bot is alive and running!")
+
+    def log_message(self, format, *args):
+        pass  # Suppress HTTP access logs to keep bot console clean
+
+
+def start_health_check_server():
+    """Starts a minimal HTTP server if the cloud environment defines a PORT (e.g. Render/Heroku)."""
+    port_str = os.environ.get("PORT", "").strip()
+    if port_str and port_str.isdigit():
+        port = int(port_str)
+        try:
+            server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            logger.info(f"🌐 Cloud health-check HTTP server listening on port {port}")
+        except Exception as e:
+            logger.warning(f"Could not bind health-check server on port {port}: {e}")
 
 
 def main():
@@ -84,6 +114,9 @@ def main():
 
     # Text Input (dimensions, numbers, etc.)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_input))
+
+    # Start cloud health check server if PORT is provided by host (e.g. Render Web Service)
+    start_health_check_server()
 
     print("✅ PrintMaster A4 Bot is active and listening for messages!")
     app.run_polling(drop_pending_updates=True)
