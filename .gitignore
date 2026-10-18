@@ -1,0 +1,26 @@
+# Ignore large build artifacts and binaries
+bin/
+obj/
+publish/
+Output_Installer/
+*.exe
+*.dll
+*.pdb
+*.msi
+
+# Ignore Python virtual environments and caches
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
+
+# Ignore sensitive secrets and temporary uploads
+.env
+telegram_bot/.env
+telegram_bot/data/
+telegram_bot/temp_uploads/
+telegram_bot/test_outputs/
+*.db
+*.sqlite3

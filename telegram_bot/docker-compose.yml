@@ -1,0 +1,12 @@
+services:
+  printmaster-bot:
+    build: .
+    container_name: printmaster-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persistent storage for the SQLite database and stats
+      - ./data:/app/telegram_bot/data
+    environment:
+      - PYTHONUNBUFFERED=1

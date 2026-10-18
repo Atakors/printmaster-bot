@@ -1,0 +1,10 @@
+# Environments & Secrets
+.env
+__pycache__/
+*.pyc
+
+# Uploads & Temporary files
+temp_uploads/
+test_outputs/
+data/
+*.db
