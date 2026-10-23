@@ -7,8 +7,11 @@ import io
 import math
 from typing import Optional, Tuple
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+from pathlib import Path
 from .models import PrintMasterState
 from .layout_engine import calculate_duplicator_layout, calculate_poster_layout
+
+BUNDLED_FONTS_DIR = Path(__file__).resolve().parent / "assets" / "fonts"
 
 # Color palette matching desktop app
 COLOR_PAPER_BG = (255, 255, 255)
@@ -22,15 +25,24 @@ COLOR_TEXT_WHITE = (255, 255, 255)
 
 
 def get_default_font(size: int = 14) -> ImageFont.ImageFont:
-    """Safely retrieves a TrueType font or falls back to standard bitmap font."""
-    try:
-        # Standard fonts on Windows
-        return ImageFont.truetype("arial.ttf", size)
-    except Exception:
+    """Safely retrieves a TrueType font across Windows, Linux, and Docker."""
+    bundled = BUNDLED_FONTS_DIR / "tahoma.ttf"
+    if bundled.exists():
         try:
-            return ImageFont.truetype("segoeui.ttf", size)
+            return ImageFont.truetype(str(bundled), size)
         except Exception:
-            return ImageFont.load_default()
+            pass
+
+    for name in ["arial.ttf", "segoeui.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]:
+        try:
+            return ImageFont.truetype(name, size)
+        except Exception:
+            continue
+
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
 
 
 def get_border_rgba(color_name: str) -> Tuple[int, int, int, int]:

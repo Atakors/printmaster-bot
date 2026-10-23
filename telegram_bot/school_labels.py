@@ -83,24 +83,50 @@ CORE_SUBJECTS = {
 
 # Inspiring Mottoes per Language
 MOTTOES = {
-    "ar": "⭐ طريقي نحو النجاح والتفوق المدرسي ⭐",
-    "fr": "⭐ Année Scolaire de Réussite & d'Excellence ⭐",
-    "en": "⭐ Knowledge is Power • Strive for Excellence ⭐",
+    "ar": "★ طريقي نحو النجاح والتفوق المدرسي ★",
+    "fr": "★ Année Scolaire de Réussite & d'Excellence ★",
+    "en": "★ Knowledge is Power  •  Strive for Excellence ★",
 }
+
+BUNDLED_FONTS_DIR = Path(__file__).resolve().parent / "assets" / "fonts"
 
 
 def _get_font(size: int, bold: bool = False, is_ar: bool = False) -> ImageFont.ImageFont:
-    """Safely retrieves TrueType font supporting Latin and Arabic characters."""
-    if is_ar:
-        font_names = ["tahomabd.ttf", "tahoma.ttf", "segoeuib.ttf", "arialbd.ttf"] if bold else ["tahoma.ttf", "segoeui.ttf", "arial.ttf"]
-    else:
-        font_names = ["segoeuib.ttf", "tahomabd.ttf", "arialbd.ttf"] if bold else ["segoeui.ttf", "tahoma.ttf", "arial.ttf"]
+    """Safely retrieves TrueType font supporting Latin and Arabic characters across all OS platforms."""
+    # 1. Bundled Tahoma in repository (guaranteed cross-platform on Render Linux, Docker, Windows)
+    bundled = BUNDLED_FONTS_DIR / ("tahomabd.ttf" if bold else "tahoma.ttf")
+    if bundled.exists():
+        try:
+            return ImageFont.truetype(str(bundled), size)
+        except Exception:
+            pass
+
+    # 2. Linux server system fonts (Render Ubuntu/Debian)
+    linux_paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf" if bold else "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+    ]
+    for lp in linux_paths:
+        if Path(lp).exists():
+            try:
+                return ImageFont.truetype(lp, size)
+            except Exception:
+                continue
+
+    # 3. Windows system fonts
+    font_names = ["tahomabd.ttf", "segoeuib.ttf", "arialbd.ttf"] if bold else ["tahoma.ttf", "segoeui.ttf", "arial.ttf"]
     for name in font_names:
         try:
             return ImageFont.truetype(name, size)
         except Exception:
             continue
-    return ImageFont.load_default()
+
+    # 4. Scaled default fallback (Pillow 10+)
+    try:
+        return ImageFont.load_default(size=size)
+    except Exception:
+        return ImageFont.load_default()
 
 
 def _draw_theme_emblem(draw: ImageDraw.Draw, theme_key: str, cx: int, cy: int, r: int, theme: Dict[str, Any]):
@@ -212,7 +238,10 @@ def render_single_label(
         # Arabic: Year Pill Left, Title Right
         pill_w = 230
         draw.rounded_rectangle([25, 18, 25 + pill_w, 88], radius=20, fill=(255, 255, 255), outline=theme["accent"], width=3)
-        draw.text((45, 24), year_text, fill=theme["primary"], font=font_year)
+        bbox_y = draw.textbbox((0, 0), year_text, font=font_year)
+        yw = bbox_y[2] - bbox_y[0]
+        yh = bbox_y[3] - bbox_y[1]
+        draw.text((25 + (pill_w - yw) // 2, 18 + (70 - yh) // 2 - 4), year_text, fill=theme["primary"], font=font_year)
 
         bbox = draw.textbbox((0, 0), header_title, font=font_header)
         tw = bbox[2] - bbox[0]
@@ -223,7 +252,10 @@ def render_single_label(
         pill_w = 230
         pill_x = CANONICAL_W - pill_w - 28
         draw.rounded_rectangle([pill_x, 18, pill_x + pill_w, 88], radius=20, fill=(255, 255, 255), outline=theme["accent"], width=3)
-        draw.text((pill_x + 20, 24), year_text, fill=theme["primary"], font=font_year)
+        bbox_y = draw.textbbox((0, 0), year_text, font=font_year)
+        yw = bbox_y[2] - bbox_y[0]
+        yh = bbox_y[3] - bbox_y[1]
+        draw.text((pill_x + (pill_w - yw) // 2, 18 + (70 - yh) // 2 - 4), year_text, fill=theme["primary"], font=font_year)
 
     # 3. Avatar Badge
     avatar_radius = 120
@@ -311,13 +343,23 @@ def render_single_label(
         if subject:
             draw.text((fx + 25, r3_y + 16), subject, fill=theme["primary"], font=font_subject_val)
         else:
-            draw.text((fx + 25, r3_y + 24), "•  •  •  •  •  •  •  •  •  •  •  •  •  •  •", fill=(148, 163, 184), font=font_dots)
+            dash_y = r3_y + 58
+            curr_x = fx + 25
+            dash_end = fx + fw - 180
+            while curr_x < dash_end:
+                draw.line([(curr_x, dash_y), (min(curr_x + 18, dash_end), dash_y)], fill=(156, 163, 175), width=3)
+                curr_x += 28
     else:
         draw.text((fx + 24, r3_y + 26), f"{lbl_subject}:", fill=theme["text_muted"], font=font_tag)
         if subject:
             draw.text((fx + 215, r3_y + 16), subject, fill=theme["primary"], font=font_subject_val)
         else:
-            draw.text((fx + 215, r3_y + 24), "•  •  •  •  •  •  •  •  •  •  •  •  •  •  •", fill=(148, 163, 184), font=font_dots)
+            dash_y = r3_y + 58
+            curr_x = fx + 215
+            dash_end = fx + fw - 30
+            while curr_x < dash_end:
+                draw.line([(curr_x, dash_y), (min(curr_x + 18, dash_end), dash_y)], fill=(156, 163, 175), width=3)
+                curr_x += 28
 
     # 5. Bottom Motivational Ribbon
     motto_y = 472
@@ -369,7 +411,7 @@ def render_single_label_preview(state: PrintMasterState) -> io.BytesIO:
 
     # Top indicator
     f_info = _get_font(20, bold=True)
-    status_text = "🏷️ PrintMaster A4 • Notebook Sticker Zoom (88 × 50 mm) • 10x per A4 Sheet"
+    status_text = "PrintMaster A4  |  Notebook Sticker Preview (88 x 50 mm)  |  10x per A4 Sheet"
     draw.text((pad_x, 14), status_text, fill=(226, 232, 240), font=f_info)
 
     # Soft drop shadow
