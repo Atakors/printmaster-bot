@@ -345,6 +345,15 @@ def run_tests():
         f.write(sheet_prev_buf.getvalue())
     print(f"  -> Saved School Labels Preview: {preview_sheet_path} ({preview_sheet_path.stat().st_size} bytes)")
 
+    # Test Single Label Zoom Preview (1x)
+    from telegram_bot.school_labels import render_single_label_preview
+    single_prev_buf = render_single_label_preview(state)
+    assert single_prev_buf.getbuffer().nbytes > 15000, "Single label preview buffer too small"
+    preview_single_path = test_out_dir / "school_label_single_preview.jpg"
+    with open(preview_single_path, "wb") as f:
+        f.write(single_prev_buf.getvalue())
+    print(f"  -> Saved Single Label Zoom Preview: {preview_single_path} ({preview_single_path.stat().st_size} bytes)")
+
     # Test Sheet 300 DPI Generation
     sheet_300_buf = render_school_labels_sheet(state, preview=False)
     assert sheet_300_buf.getbuffer().nbytes > 100000, "300 DPI sheet buffer too small"

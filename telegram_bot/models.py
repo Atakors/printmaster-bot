@@ -55,6 +55,7 @@ class PrintMasterState:
     school_theme: str = "classic"       # 'classic', 'football', 'space', 'cute', 'science'
     school_custom_avatar: bool = False  # If True and image_path exists, place student photo on label
     school_year: str = "2026/2027"
+    school_preview_view: str = "single"  # 'single' (zoom 1x) or 'sheet' (full A4 sheet 10x)
     
     # Image Source Information
     image_path: Optional[str] = None

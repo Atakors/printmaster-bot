@@ -86,8 +86,10 @@ def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> Pr
 def render_current_preview(state: PrintMasterState) -> io.BytesIO:
     """Renders the appropriate live preview buffer depending on active mode."""
     if state.mode == "school_labels":
-        from .school_labels import render_school_labels_sheet
-        return render_school_labels_sheet(state, preview=True)
+        from .school_labels import render_school_labels_sheet, render_single_label_preview
+        if getattr(state, "school_preview_view", "single") == "sheet":
+            return render_school_labels_sheet(state, preview=True)
+        return render_single_label_preview(state)
     return render_preview_image(state)
 
 
@@ -559,6 +561,11 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
     if data == "toggle_school_avatar":
         state.school_custom_avatar = not state.school_custom_avatar
+        await _update_view(query, state)
+        return
+
+    if data == "toggle_school_view":
+        state.school_preview_view = "sheet" if getattr(state, "school_preview_view", "single") == "single" else "single"
         await _update_view(query, state)
         return
 

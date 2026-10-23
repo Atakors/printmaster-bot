@@ -231,6 +231,8 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "theme_science": "🔬 Science & Books",
         "prompt_school_name": "✏️ *Please enter the student's Full Name (e.g. Lucas Dupont):*",
         "prompt_school_grade": "🏫 *Please enter the student's Class or Grade (e.g. 5th Grade, CM2):*",
+        "school_btn_view_sheet": "📄 Full A4 Sheet (10x)",
+        "school_btn_view_single": "🔍 Zoom Single Sticker (1x)",
     },
 
     # =========================================================================
@@ -458,6 +460,8 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "theme_science": "🔬 علوم وكتب",
         "prompt_school_name": "✏️ *يرجى إرسال اسم ولقب التلميذ(ة):*",
         "prompt_school_grade": "🏫 *يرجى إرسال القسم أو السنة الدراسية (مثال: 5 ابتدائي، 2 متوسط، CM2):*",
+        "school_btn_view_sheet": "📄 عرض الصفحة كاملة (10x)",
+        "school_btn_view_single": "🔍 تكبير ملصق واحد (1x)",
     },
 
     # =========================================================================
@@ -685,6 +689,8 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "theme_science": "🔬 Sciences & Livres",
         "prompt_school_name": "✏️ *Veuillez entrer le Nom et Prénom de l'élève :*",
         "prompt_school_grade": "🏫 *Veuillez entrer la classe (ex: CM2, 5ème, 3AS) :*",
+        "school_btn_view_sheet": "📄 Feuille A4 Complète (10x)",
+        "school_btn_view_single": "🔍 Zoom Étiquette (1x)",
     },
 }
 

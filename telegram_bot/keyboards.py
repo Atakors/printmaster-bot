@@ -92,10 +92,12 @@ def build_school_labels_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
         InlineKeyboardButton(t("btn_school_subjects", lang, mode=subj_label), callback_data="toggle_school_subjects"),
     ])
 
-    # Student Photo Avatar toggle
+    # Student Photo Avatar toggle & View Mode
     photo_status = t("on", lang) if state.school_custom_avatar else t("off", lang)
+    view_label = t("school_btn_view_sheet", lang) if getattr(state, "school_preview_view", "single") == "single" else t("school_btn_view_single", lang)
     rows.append([
         InlineKeyboardButton(t("btn_school_avatar", lang, status=photo_status), callback_data="toggle_school_avatar"),
+        InlineKeyboardButton(view_label, callback_data="toggle_school_view"),
     ])
 
     # Export Buttons
