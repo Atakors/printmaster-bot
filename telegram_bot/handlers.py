@@ -83,13 +83,41 @@ def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> Pr
     return USER_SESSIONS[user_id]
 
 
+def render_current_preview(state: PrintMasterState) -> io.BytesIO:
+    """Renders the appropriate live preview buffer depending on active mode."""
+    if state.mode == "school_labels":
+        from .school_labels import render_school_labels_sheet
+        return render_school_labels_sheet(state, preview=True)
+    return render_preview_image(state)
+
+
+def render_current_300dpi(state: PrintMasterState) -> io.BytesIO:
+    """Renders the appropriate 300 DPI high-resolution image buffer depending on active mode."""
+    if state.mode == "school_labels":
+        from .school_labels import render_school_labels_sheet
+        return render_school_labels_sheet(state, preview=False)
+    return render_300dpi_image(state)
+
+
 def format_status_caption(state: PrintMasterState) -> str:
     """Generates an informative, polished Markdown caption for the preview message in active language."""
     lang = state.language
     orient = t("portrait_full", lang) if state.is_portrait else t("landscape_full", lang)
     margins = f"T:{state.margin_top_mm:.0f} B:{state.margin_bottom_mm:.0f} L:{state.margin_left_mm:.0f} R:{state.margin_right_mm:.0f} mm"
 
-    if state.mode == "duplicator":
+    if state.mode == "school_labels":
+        name = state.school_student_name.strip() or t("school_sample_student", lang)
+        grade = state.school_grade.strip() or t("school_sample_grade", lang)
+        theme_key = state.school_theme if state.school_theme in ("classic", "football", "space", "cute", "science") else "classic"
+        theme_name = t(f"theme_{theme_key}", lang)
+        subjects = t("school_subj_auto", lang) if state.school_subject_mode == "auto" else t("school_subj_blank", lang)
+        photo_status = t("on", lang) if state.school_custom_avatar else t("off", lang)
+
+        caption = (
+            f"{t('school_caption_header', lang)}\n\n"
+            f"{t('school_caption_body', lang, name=name, grade=grade, theme=theme_name, subjects=subjects, photo=photo_status)}"
+        )
+    elif state.mode == "duplicator":
         layout = calculate_duplicator_layout(state)
         w_cm = state.image_width_mm / 10.0
         h_cm = state.image_height_mm / 10.0
@@ -260,7 +288,26 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(welcome_text, parse_mode=ParseMode.MARKDOWN)
 
     # Render initial preview
-    preview_buf = render_preview_image(state)
+    preview_buf = render_current_preview(state)
+    caption = format_status_caption(state)
+    kbd = build_keyboard(state)
+
+    sent_msg = await update.message.reply_photo(photo=preview_buf, caption=caption, parse_mode=ParseMode.MARKDOWN, reply_markup=kbd)
+    state.last_preview_message_id = sent_msg.message_id
+
+
+async def school_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles /school or /labels command to switch straight to School Notebook Labels."""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    record_user_interaction(user, "school_labels", "/school command")
+
+    state = get_user_state(user.id, chat_id, user)
+    state.mode = "school_labels"
+    state.current_menu = "main"
+    state.waiting_for_input = None
+
+    preview_buf = render_current_preview(state)
     caption = format_status_caption(state)
     kbd = build_keyboard(state)
 
@@ -339,7 +386,7 @@ async def handle_photo_upload(update: Update, context: ContextTypes.DEFAULT_TYPE
         await status_msg.delete()
 
         # Render preview and send new control center
-        preview_buf = render_preview_image(state)
+        preview_buf = render_current_preview(state)
         caption = format_status_caption(state)
         kbd = build_keyboard(state)
 
@@ -449,7 +496,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
                 state.show_cut_marks = True
                 state.current_menu = "main"
 
-                preview_buf = render_preview_image(state)
+                preview_buf = render_current_preview(state)
                 caption = format_status_caption(state)
                 kbd = build_keyboard(state)
 
@@ -484,7 +531,39 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
     # 2. Toggle Mode
     if data == "toggle_mode":
-        state.mode = "poster" if state.mode == "duplicator" else "duplicator"
+        if state.mode == "duplicator":
+            state.mode = "poster"
+        elif state.mode == "poster":
+            state.mode = "school_labels"
+        else:
+            state.mode = "duplicator"
+        state.current_menu = "main"
+        await _update_view(query, state)
+        return
+
+    # Mode Switch Direct
+    if data.startswith("switch_mode:"):
+        new_mode = data.split(":", 1)[1]
+        if new_mode in ("duplicator", "poster", "school_labels"):
+            state.mode = new_mode
+            state.current_menu = "main"
+            state.waiting_for_input = None
+            await _update_view(query, state)
+        return
+
+    # School Labels callbacks
+    if data == "toggle_school_subjects":
+        state.school_subject_mode = "blank" if state.school_subject_mode == "auto" else "auto"
+        await _update_view(query, state)
+        return
+
+    if data == "toggle_school_avatar":
+        state.school_custom_avatar = not state.school_custom_avatar
+        await _update_view(query, state)
+        return
+
+    if data.startswith("set_school_theme:"):
+        state.school_theme = data.split(":", 1)[1]
         state.current_menu = "main"
         await _update_view(query, state)
         return
@@ -652,6 +731,8 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             "custom_batch": t("prompt_batch", state.language),
             "custom_poster_grid": t("prompt_poster_grid", state.language),
             "custom_overlap": t("prompt_poster_overlap", state.language),
+            "school_name": t("prompt_school_name", state.language),
+            "school_grade": t("prompt_school_grade", state.language),
         }
         msg = prompt_map.get(input_type, "Please type the value:")
         cancel_hint = t("input_cancel_hint", state.language)
@@ -669,11 +750,13 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         record_export(user.id, "pdf")
         record_user_interaction(user, "export_pdf", state.mode)
         pdf_buf = export_pdf(state)
-        fname = (
-            "Poster_A4_Tiles.pdf"
-            if state.mode == "poster"
-            else (f"Batch_{state.total_batch_copies}_Copies.pdf" if state.total_batch_copies > 0 else "Duplicated_A4_Output.pdf")
-        )
+        if state.mode == "school_labels":
+            fname = "School_Notebook_Labels_A4.pdf"
+        elif state.mode == "poster":
+            fname = "Poster_A4_Tiles.pdf"
+        else:
+            fname = f"Batch_{state.total_batch_copies}_Copies.pdf" if state.total_batch_copies > 0 else "Duplicated_A4_Output.pdf"
+
         await query.message.reply_document(
             document=pdf_buf,
             filename=fname,
@@ -686,8 +769,14 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         await query.message.reply_chat_action("upload_document")
         record_export(user.id, "image")
         record_user_interaction(user, "export_image300", state.mode)
-        img_buf = render_300dpi_image(state)
-        fname = "Poster_A4_300DPI.png" if state.mode == "poster" else "Duplicated_A4_300DPI.png"
+        img_buf = render_current_300dpi(state)
+        if state.mode == "school_labels":
+            fname = "School_Notebook_Labels_A4_300DPI.png"
+        elif state.mode == "poster":
+            fname = "Poster_A4_300DPI.png"
+        else:
+            fname = "Duplicated_A4_300DPI.png"
+
         await query.message.reply_document(
             document=img_buf,
             filename=fname,
@@ -778,12 +867,20 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
+        elif input_type == "school_name":
+            state.school_student_name = text.strip()[:60]
+            await update.message.reply_text(f"✅ *{state.school_student_name}*", parse_mode=ParseMode.MARKDOWN)
+
+        elif input_type == "school_grade":
+            state.school_grade = text.strip()[:50]
+            await update.message.reply_text(f"✅ *{state.school_grade}*", parse_mode=ParseMode.MARKDOWN)
+
     except Exception as e:
         logger.exception("Error parsing text input: %s", e)
         await update.message.reply_text("❌ An error occurred processing the input.")
 
     # Re-send or refresh control center
-    preview_buf = render_preview_image(state)
+    preview_buf = render_current_preview(state)
     caption = format_status_caption(state)
     kbd = build_keyboard(state)
 
@@ -799,7 +896,7 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _update_view(query, state: PrintMasterState):
     """Updates the preview photo, caption, and inline keyboard in-place or re-sends photo if transitioning from text."""
     try:
-        preview_buf = render_preview_image(state)
+        preview_buf = render_current_preview(state)
         caption = format_status_caption(state)
         kbd = build_keyboard(state)
 

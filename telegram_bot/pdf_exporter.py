@@ -21,7 +21,30 @@ def export_pdf(state: PrintMasterState) -> io.BytesIO:
     """Master entry point for PDF generation."""
     if state.mode == "poster":
         return export_poster_pdf(state)
+    elif state.mode == "school_labels":
+        return export_school_labels_pdf(state)
     return export_duplicator_pdf(state)
+
+
+def export_school_labels_pdf(state: PrintMasterState) -> io.BytesIO:
+    """Exports 10 school stickers page to print-ready PDF."""
+    from .school_labels import render_school_labels_sheet
+    img_buf = render_school_labels_sheet(state, preview=False)
+
+    mm_to_pt = 72.0 / 25.4
+    page_w_pt = 210.0 * mm_to_pt
+    page_h_pt = 297.0 * mm_to_pt
+
+    buf = io.BytesIO()
+    pdf = canvas.Canvas(buf, pagesize=(page_w_pt, page_h_pt))
+    pdf.setTitle("PrintMaster A4 - School Notebook Labels")
+
+    reader = ImageReader(img_buf)
+    pdf.drawImage(reader, 0, 0, width=page_w_pt, height=page_h_pt)
+    pdf.showPage()
+    pdf.save()
+    buf.seek(0)
+    return buf
 
 
 def export_duplicator_pdf(state: PrintMasterState) -> io.BytesIO:

@@ -197,6 +197,40 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "export_image_generating": "⏳ *Rendering ultra-crisp 300 DPI print image... Please wait.*",
         "export_image_ready": "🖼 *Your 300 DPI high-resolution print image is ready!*",
         "upload_received": "✅ *Image received and loaded!* Preview updated below.",
+
+        # School Notebook Labels
+        "mode_school_btn": "🔀 Mode: 🎒 School Labels",
+        "btn_switch_school": "🎒 School Labels",
+        "school_caption_header": "🎒 *PrintMaster A4 — School Notebook Labels*",
+        "school_caption_body": (
+            "📄 *Sheet Layout:* `10 Stickers / A4` (88 × 50 mm)\n"
+            "👤 *Student Name:* `{name}`\n"
+            "🏫 *Class / Grade:* `{grade}`\n"
+            "🎨 *Theme:* `{theme}`\n"
+            "📚 *Subjects:* `{subjects}`\n"
+            "📸 *Student Photo:* `{photo}`\n\n"
+            "💡 _Ready to print directly on standard A4 adhesive sticker paper!_"
+        ),
+        "btn_school_name": "✏️ Name: {name}",
+        "btn_school_grade": "🏫 Class: {grade}",
+        "btn_school_theme": "🎨 Theme: {theme}",
+        "btn_school_subjects": "📚 Subjects: {mode}",
+        "btn_school_avatar": "📸 Student Photo: {status}",
+        "school_subj_blank": "Line for Pen (Manual)",
+        "school_subj_auto": "10 Core Subjects (Auto)",
+        "school_label_header": "STUDENT NOTEBOOK",
+        "school_field_name": "Name",
+        "school_field_class": "Class",
+        "school_field_subject": "Subject",
+        "school_sample_student": "Student Name",
+        "school_sample_grade": "5th Grade",
+        "theme_classic": "🎓 Classic Minimalist",
+        "theme_football": "⚽ Football Champions",
+        "theme_space": "🚀 Space & Galaxy",
+        "theme_cute": "🐻 Cute & Pastel",
+        "theme_science": "🔬 Science & Books",
+        "prompt_school_name": "✏️ *Please enter the student's Full Name (e.g. Lucas Dupont):*",
+        "prompt_school_grade": "🏫 *Please enter the student's Class or Grade (e.g. 5th Grade, CM2):*",
     },
 
     # =========================================================================
@@ -390,6 +424,40 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "export_image_generating": "⏳ *جارٍ معالجة وتوليد صورة عالية الدقة 300 DPI... يرجى الانتظار لحظات.*",
         "export_image_ready": "🖼 *تم تصدير الصورة فائقة الدقة 300 DPI بنجاح!*",
         "upload_received": "✅ *تم استلام الصورة بنجاح وتحديث المعاينة أدناه!*",
+
+        # School Notebook Labels
+        "mode_school_btn": "🔀 الوضع: 🎒 ملصقات الدفاتر المدرسية",
+        "btn_switch_school": "🎒 ملصقات الدفاتر المدرسية",
+        "school_caption_header": "🎒 *برينت ماستر A4 — مولّد ملصقات الدفاتر المدرسية*",
+        "school_caption_body": (
+            "📄 *تقسيم الصفحة:* `10 ملصقات / ورقة A4` (88 × 50 مم)\n"
+            "👤 *اسم التلميذ(ة):* `{name}`\n"
+            "🏫 *القسم / السنة:* `{grade}`\n"
+            "🎨 *المظهر:* `{theme}`\n"
+            "📚 *المواد الدراسية:* `{subjects}`\n"
+            "📸 *صورة التلميذ الشخصية:* `{photo}`\n\n"
+            "💡 _جاهزة للطباعة الفورية على ورق لاصق (Sticker A4)!_"
+        ),
+        "btn_school_name": "✏️ الاسم: {name}",
+        "btn_school_grade": "🏫 القسم: {grade}",
+        "btn_school_theme": "🎨 المظهر: {theme}",
+        "btn_school_subjects": "📚 المواد: {mode}",
+        "btn_school_avatar": "📸 صورة التلميذ: {status}",
+        "school_subj_blank": "سطر فارغ للكتابة بالقلم",
+        "school_subj_auto": "10 مواد دراسية (تلقائي)",
+        "school_label_header": "دفتر التلميذ",
+        "school_field_name": "الاسم واللقب",
+        "school_field_class": "القسم",
+        "school_field_subject": "المادة",
+        "school_sample_student": "اسم التلميذ(ة)",
+        "school_sample_grade": "السنة الخامسة",
+        "theme_classic": "🎓 كلاسيكي أنيق",
+        "theme_football": "⚽ أبطال كرة القدم",
+        "theme_space": "🚀 فضاء وكواكب",
+        "theme_cute": "🐻 لطيف ودبدوب",
+        "theme_science": "🔬 علوم وكتب",
+        "prompt_school_name": "✏️ *يرجى إرسال اسم ولقب التلميذ(ة):*",
+        "prompt_school_grade": "🏫 *يرجى إرسال القسم أو السنة الدراسية (مثال: 5 ابتدائي، 2 متوسط، CM2):*",
     },
 
     # =========================================================================
@@ -583,6 +651,40 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "export_image_generating": "⏳ *Rendu de l'image haute définition 300 DPI... Veuillez patienter.*",
         "export_image_ready": "🖼 *Votre image haute résolution 300 DPI est prête !*",
         "upload_received": "✅ *Image reçue et chargée avec succès !* Aperçu mis à jour ci-dessous.",
+
+        # School Notebook Labels
+        "mode_school_btn": "🔀 Mode : 🎒 Étiquettes Scolaires",
+        "btn_switch_school": "🎒 Étiquettes Scolaires",
+        "school_caption_header": "🎒 *PrintMaster A4 — Étiquettes de Cahiers Scolaires*",
+        "school_caption_body": (
+            "📄 *Mise en page :* `10 Autocollants / A4` (88 × 50 mm)\n"
+            "👤 *Nom de l'élève :* `{name}`\n"
+            "🏫 *Classe :* `{grade}`\n"
+            "🎨 *Thème visuel :* `{theme}`\n"
+            "📚 *Matières :* `{subjects}`\n"
+            "📸 *Photo élève :* `{photo}`\n\n"
+            "💡 _Prêt à imprimer sur papier autocollant A4 ou papier standard !_"
+        ),
+        "btn_school_name": "✏️ Nom : {name}",
+        "btn_school_grade": "🏫 Classe : {grade}",
+        "btn_school_theme": "🎨 Thème : {theme}",
+        "btn_school_subjects": "📚 Matières : {mode}",
+        "btn_school_avatar": "📸 Photo élève : {status}",
+        "school_subj_blank": "Ligne vide (Au stylo)",
+        "school_subj_auto": "10 Matières (Auto-rempli)",
+        "school_label_header": "CAHIER SCOLAIRE",
+        "school_field_name": "Nom",
+        "school_field_class": "Classe",
+        "school_field_subject": "Matière",
+        "school_sample_student": "Nom de l'élève",
+        "school_sample_grade": "5ème Année",
+        "theme_classic": "🎓 Classique Minimaliste",
+        "theme_football": "⚽ Champions de Foot",
+        "theme_space": "🚀 Espace & Galaxie",
+        "theme_cute": "🐻 Mignon & Pastel",
+        "theme_science": "🔬 Sciences & Livres",
+        "prompt_school_name": "✏️ *Veuillez entrer le Nom et Prénom de l'élève :*",
+        "prompt_school_grade": "🏫 *Veuillez entrer la classe (ex: CM2, 5ème, 3AS) :*",
     },
 }
 

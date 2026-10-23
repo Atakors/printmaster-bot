@@ -25,6 +25,15 @@ def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
     """Builds the inline keyboard corresponding to the active menu state."""
     menu = state.current_menu
 
+    if state.mode == "school_labels":
+        if menu == "school_themes":
+            return build_school_themes_menu(state)
+        elif menu == "language":
+            return build_language_menu(state)
+        elif menu == "about":
+            return build_about_menu(state)
+        return build_school_labels_menu(state)
+
     if menu == "presets_size":
         return build_presets_size_menu(state)
     elif menu == "presets_grid":
@@ -49,6 +58,79 @@ def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
         return build_about_menu(state)
     else:
         return build_main_menu(state)
+
+
+def build_school_labels_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    """Builds the control keyboard for the School Notebook Labels mode."""
+    lang = state.language
+    rows = []
+
+    # Mode Selector
+    mode_btn = InlineKeyboardButton(t("mode_school_btn", lang), callback_data="toggle_mode")
+    rows.append([mode_btn])
+
+    # Name and Class
+    name_display = state.school_student_name.strip() or t("school_sample_student", lang)
+    grade_display = state.school_grade.strip() or t("school_sample_grade", lang)
+    if len(name_display) > 16:
+        name_display = name_display[:14] + ".."
+    if len(grade_display) > 14:
+        grade_display = grade_display[:12] + ".."
+
+    rows.append([
+        InlineKeyboardButton(t("btn_school_name", lang, name=name_display), callback_data="input:school_name"),
+        InlineKeyboardButton(t("btn_school_grade", lang, grade=grade_display), callback_data="input:school_grade"),
+    ])
+
+    # Theme and Subjects Mode
+    theme_key = state.school_theme if state.school_theme in ("classic", "football", "space", "cute", "science") else "classic"
+    theme_name = t(f"theme_{theme_key}", lang)
+    subj_label = t("school_subj_auto", lang) if state.school_subject_mode == "auto" else t("school_subj_blank", lang)
+
+    rows.append([
+        InlineKeyboardButton(t("btn_school_theme", lang, theme=theme_name), callback_data="menu:school_themes"),
+        InlineKeyboardButton(t("btn_school_subjects", lang, mode=subj_label), callback_data="toggle_school_subjects"),
+    ])
+
+    # Student Photo Avatar toggle
+    photo_status = t("on", lang) if state.school_custom_avatar else t("off", lang)
+    rows.append([
+        InlineKeyboardButton(t("btn_school_avatar", lang, status=photo_status), callback_data="toggle_school_avatar"),
+    ])
+
+    # Export Buttons
+    rows.append([
+        InlineKeyboardButton(t("btn_export_pdf", lang), callback_data="export:pdf"),
+        InlineKeyboardButton(t("btn_export_image300", lang), callback_data="export:image300"),
+    ])
+
+    # Language & Refresh
+    rows.append([
+        InlineKeyboardButton(t("btn_language", lang), callback_data="menu:language"),
+        InlineKeyboardButton(t("btn_refresh", lang), callback_data="refresh_preview"),
+    ])
+
+    # Back to Duplicator
+    rows.append([
+        InlineKeyboardButton("« " + t("mode_duplicator", lang), callback_data="switch_mode:duplicator"),
+    ])
+
+    return InlineKeyboardMarkup(rows)
+
+
+def build_school_themes_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    """Builds interactive theme selector for School Labels."""
+    lang = state.language
+    themes = ["classic", "football", "space", "cute", "science"]
+    rows = []
+    for th in themes:
+        active = "✓ " if state.school_theme == th else ""
+        label = t(f"theme_{th}", lang)
+        rows.append([InlineKeyboardButton(f"{active}{label}", callback_data=f"set_school_theme:{th}")])
+
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
+    return InlineKeyboardMarkup(rows)
+
 
 
 def build_main_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
@@ -108,6 +190,11 @@ def build_main_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
     rows.append([
         InlineKeyboardButton(t("btn_export_pdf", lang), callback_data="export:pdf"),
         InlineKeyboardButton(t("btn_export_image300", lang), callback_data="export:image300"),
+    ])
+
+    # School Labels Quick Switch
+    rows.append([
+        InlineKeyboardButton(t("btn_switch_school", lang), callback_data="switch_mode:school_labels"),
     ])
 
     # Tutorial & Language

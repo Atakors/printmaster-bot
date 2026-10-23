@@ -308,6 +308,76 @@ def run_tests():
     print("  -> Database French language persistence verified.")
     print("  ✅ French localization passed with 100% test coverage.")
 
+    # -------------------------------------------------------------
+    # Test 13: School Notebook Label Generator
+    # -------------------------------------------------------------
+    print("\n[Test 13] Testing School Notebook Label Generator...")
+    from telegram_bot.school_labels import (
+        render_single_label,
+        render_school_labels_sheet,
+        THEME_CONFIGS,
+    )
+    from telegram_bot.pdf_exporter import export_school_labels_pdf
+
+    state.mode = "school_labels"
+    state.school_student_name = "Yacine Benali"
+    state.school_grade = "5ème AP / CM2"
+    state.school_custom_avatar = True
+    state.school_subject_mode = "auto"
+    state.language = "ar"
+
+    # Test single sticker rendering across all 5 themes
+    for theme_id in THEME_CONFIGS:
+        state.school_theme = theme_id
+        sticker_img = render_single_label(
+            state,
+            subject="الرياضيات",
+        )
+        assert sticker_img.size == (760, 440), f"Sticker size mismatch: {sticker_img.size}"
+        print(f"  -> Sticker rendered for theme '{theme_id}': {sticker_img.size}")
+
+    # Test Sheet Preview Generation (96 DPI)
+    state.school_theme = "space"
+    sheet_prev_buf = render_school_labels_sheet(state, preview=True)
+    assert sheet_prev_buf.getbuffer().nbytes > 15000, "Preview sheet buffer too small"
+    preview_sheet_path = test_out_dir / "school_labels_preview.jpg"
+    with open(preview_sheet_path, "wb") as f:
+        f.write(sheet_prev_buf.getvalue())
+    print(f"  -> Saved School Labels Preview: {preview_sheet_path} ({preview_sheet_path.stat().st_size} bytes)")
+
+    # Test Sheet 300 DPI Generation
+    sheet_300_buf = render_school_labels_sheet(state, preview=False)
+    assert sheet_300_buf.getbuffer().nbytes > 100000, "300 DPI sheet buffer too small"
+    sheet_300_path = test_out_dir / "school_labels_300dpi.png"
+    with open(sheet_300_path, "wb") as f:
+        f.write(sheet_300_buf.getvalue())
+    print(f"  -> Saved School Labels 300 DPI: {sheet_300_path} ({sheet_300_path.stat().st_size} bytes)")
+
+    # Test School Labels PDF Generation
+    pdf_school_buf = export_pdf(state)
+    assert pdf_school_buf.getbuffer().nbytes > 20000, "School labels PDF buffer too small"
+    pdf_school_path = test_out_dir / "school_labels.pdf"
+    with open(pdf_school_path, "wb") as f:
+        f.write(pdf_school_buf.getvalue())
+    print(f"  -> Saved School Labels PDF: {pdf_school_path} ({pdf_school_path.stat().st_size} bytes)")
+
+    # Test French & English labels
+    state.language = "fr"
+    state.school_theme = "classic"
+    fr_school_caption = format_status_caption(state)
+    assert "Étiquettes de Cahiers Scolaires" in fr_school_caption
+    fr_school_kbd = build_keyboard(state)
+    assert fr_school_kbd is not None
+
+    state.language = "en"
+    state.school_theme = "football"
+    en_school_caption = format_status_caption(state)
+    assert "School Notebook Labels" in en_school_caption
+    en_school_kbd = build_keyboard(state)
+    assert en_school_kbd is not None
+
+    print("  ✅ School Notebook Label Generator passed all tests.")
+
     print("\n" + "=" * 60)
     print("🎉 ALL TESTS PASSED SUCCESSFULLY! FULL ENGINE IS READY.")
     print("=" * 60)

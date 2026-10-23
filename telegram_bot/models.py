@@ -47,6 +47,14 @@ class PrintMasterState:
     poster_rows: int = 2
     poster_overlap_mm: float = 10.0
     poster_guides: bool = True
+
+    # School Notebook Labels Settings
+    school_student_name: str = ""
+    school_grade: str = ""
+    school_subject_mode: str = "blank"  # 'blank' (pen dotted line) or 'auto' (pre-filled subjects)
+    school_theme: str = "classic"       # 'classic', 'football', 'space', 'cute', 'science'
+    school_custom_avatar: bool = False  # If True and image_path exists, place student photo on label
+    school_year: str = "2026/2027"
     
     # Image Source Information
     image_path: Optional[str] = None
