@@ -28,6 +28,8 @@ def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
     if state.mode == "school_labels":
         if menu == "school_themes":
             return build_school_themes_menu(state)
+        elif menu == "school_subjects":
+            return build_school_subjects_menu(state)
         elif menu == "language":
             return build_language_menu(state)
         elif menu == "about":
@@ -82,21 +84,45 @@ def build_school_labels_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
         InlineKeyboardButton(t("btn_school_grade", lang, grade=grade_display), callback_data="input:school_grade"),
     ])
 
-    # Theme and Subjects Mode
-    theme_key = state.school_theme if state.school_theme in ("classic", "football", "space", "cute", "science") else "classic"
+    # Theme and Font Size
+    theme_key = state.school_theme
     theme_name = t(f"theme_{theme_key}", lang)
-    subj_label = t("school_subj_auto", lang) if state.school_subject_mode == "auto" else t("school_subj_blank", lang)
+
+    font_scale = getattr(state, "school_font_scale", 1.0)
+    if font_scale <= 0.9:
+        size_key = "compact"
+    elif font_scale >= 1.25:
+        size_key = "huge"
+    elif font_scale >= 1.1:
+        size_key = "large"
+    else:
+        size_key = "normal"
+    font_label = t("btn_school_font", lang, size=t(f"font_size_{size_key}", lang))
 
     rows.append([
         InlineKeyboardButton(t("btn_school_theme", lang, theme=theme_name), callback_data="menu:school_themes"),
-        InlineKeyboardButton(t("btn_school_subjects", lang, mode=subj_label), callback_data="toggle_school_subjects"),
+        InlineKeyboardButton(font_label, callback_data="cycle_school_font"),
     ])
 
-    # Student Photo Avatar toggle & View Mode
+    # Subject Picker and Student Photo Avatar toggle
+    if getattr(state, "school_subject_mode", "auto") == "single" and getattr(state, "school_selected_subject", ""):
+        subj_display = state.school_selected_subject
+    elif getattr(state, "school_subject_mode", "auto") == "auto":
+        subj_display = t("school_subj_auto", lang)
+    else:
+        subj_display = t("school_subj_blank", lang)
+    if len(subj_display) > 16:
+        subj_display = subj_display[:14] + ".."
+
     photo_status = t("on", lang) if state.school_custom_avatar else t("off", lang)
+    rows.append([
+        InlineKeyboardButton(t("btn_school_subject_picker", lang, subj=subj_display), callback_data="menu:school_subjects"),
+        InlineKeyboardButton(t("btn_school_avatar", lang, status=photo_status), callback_data="toggle_school_avatar"),
+    ])
+
+    # View Mode (Zoom Single 1x vs Full A4 Sheet 10x)
     view_label = t("school_btn_view_sheet", lang) if getattr(state, "school_preview_view", "single") == "single" else t("school_btn_view_single", lang)
     rows.append([
-        InlineKeyboardButton(t("btn_school_avatar", lang, status=photo_status), callback_data="toggle_school_avatar"),
         InlineKeyboardButton(view_label, callback_data="toggle_school_view"),
     ])
 
@@ -112,11 +138,50 @@ def build_school_labels_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
         InlineKeyboardButton(t("btn_refresh", lang), callback_data="refresh_preview"),
     ])
 
-    # Back to Duplicator
+    # Mode switcher: switch to duplicator
     rows.append([
         InlineKeyboardButton("« " + t("mode_duplicator", lang), callback_data="switch_mode:duplicator"),
     ])
 
+    return InlineKeyboardMarkup(rows)
+
+
+def build_school_subjects_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    """Builds interactive subject selector with Auto, Blank, Custom, and 12 quick subject buttons."""
+    from .school_labels import CORE_SUBJECTS
+    lang = state.language
+    rows = []
+
+    # Auto vs Blank
+    active_auto = "✓ " if state.school_subject_mode == "auto" else ""
+    active_blank = "✓ " if state.school_subject_mode == "blank" else ""
+    rows.append([
+        InlineKeyboardButton(f"{active_auto}{t('btn_subj_auto', lang)}", callback_data="set_school_subj:auto"),
+        InlineKeyboardButton(f"{active_blank}{t('btn_subj_blank', lang)}", callback_data="set_school_subj:blank"),
+    ])
+
+    # Custom Subject input button
+    rows.append([
+        InlineKeyboardButton(t("btn_subj_custom", lang), callback_data="input:school_subject"),
+    ])
+
+    # Section header
+    rows.append([
+        InlineKeyboardButton("─── Quick Subjects ───", callback_data="noop"),
+    ])
+
+    # Top subjects for active language
+    all_subjects = CORE_SUBJECTS.get(lang, CORE_SUBJECTS["en"])
+    quick_list = all_subjects[:12]
+    for i in range(0, len(quick_list), 2):
+        row = []
+        for s in quick_list[i:i+2]:
+            active = "✓ " if (state.school_subject_mode == "single" and state.school_selected_subject == s) else ""
+            row.append(InlineKeyboardButton(f"{active}{s}", callback_data=f"pick_school_subj:{s}"))
+        rows.append(row)
+
+    # Back
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 

@@ -51,11 +51,13 @@ class PrintMasterState:
     # School Notebook Labels Settings
     school_student_name: str = ""
     school_grade: str = ""
-    school_subject_mode: str = "blank"  # 'blank' (pen dotted line) or 'auto' (pre-filled subjects)
-    school_theme: str = "classic"       # 'classic', 'football', 'space', 'cute', 'science'
+    school_subject_mode: str = "auto"   # 'auto' (10 subjects), 'blank' (pen dotted line), 'single' (user picked subject)
+    school_selected_subject: str = ""   # e.g., 'Mathematics', 'Physics', or custom user input
+    school_theme: str = "boy_football"  # default theme
     school_custom_avatar: bool = False  # If True and image_path exists, place student photo on label
     school_year: str = "2026/2027"
     school_preview_view: str = "single"  # 'single' (zoom 1x) or 'sheet' (full A4 sheet 10x)
+    school_font_scale: float = 1.0       # 0.85 (compact), 1.0 (medium/default), 1.15 (large), 1.30 (huge)
     
     # Image Source Information
     image_path: Optional[str] = None

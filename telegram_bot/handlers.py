@@ -39,6 +39,10 @@ from .database import (
     export_users_csv,
     set_user_language,
     get_user_language,
+    set_user_mode,
+    get_user_mode,
+    save_school_state,
+    load_school_state,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,10 +55,15 @@ USER_SESSIONS: Dict[int, PrintMasterState] = {}
 
 
 def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> PrintMasterState:
-    """Retrieves or initializes session state for a user, maintaining language preference."""
+    """Retrieves or initializes session state for a user, restoring persisted mode, language, and settings."""
     if user_id not in USER_SESSIONS:
         state = PrintMasterState(user_id=user_id, chat_id=chat_id)
-        # Determine language from DB or Telegram user locale
+        # 1. Restore editor mode from DB
+        saved_mode = get_user_mode(user_id)
+        if saved_mode in ("duplicator", "poster", "school_labels"):
+            state.mode = saved_mode
+
+        # 2. Restore language from DB or Telegram user locale
         db_lang = get_user_language(user_id)
         if db_lang:
             state.language = db_lang
@@ -66,6 +75,18 @@ def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> Pr
             elif code.startswith("fr"):
                 state.language = "fr"
                 set_user_language(user_id, "fr")
+
+        # 3. Restore persisted school labels state
+        school_data = load_school_state(user_id)
+        if school_data:
+            state.school_student_name = school_data.get("name", "")
+            state.school_grade = school_data.get("grade", "")
+            state.school_theme = school_data.get("theme", "boy_football")
+            state.school_subject_mode = school_data.get("subject_mode", "auto")
+            state.school_selected_subject = school_data.get("selected_subject", "")
+            state.school_font_scale = school_data.get("font_scale", 1.0)
+            state.school_preview_view = school_data.get("preview_view", "single")
+            state.school_custom_avatar = school_data.get("custom_avatar", False)
 
         # Initialize with sample image if available
         if DEFAULT_SAMPLE_IMAGE.exists():
@@ -81,6 +102,23 @@ def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> Pr
                 pass
         USER_SESSIONS[user_id] = state
     return USER_SESSIONS[user_id]
+
+
+def _persist_school_state(state: PrintMasterState):
+    """Safely saves active school label settings to the SQLite database."""
+    try:
+        save_school_state(state.user_id, {
+            "name": state.school_student_name,
+            "grade": state.school_grade,
+            "theme": state.school_theme,
+            "subject_mode": state.school_subject_mode,
+            "selected_subject": getattr(state, "school_selected_subject", ""),
+            "font_scale": getattr(state, "school_font_scale", 1.0),
+            "preview_view": getattr(state, "school_preview_view", "single"),
+            "custom_avatar": getattr(state, "school_custom_avatar", False),
+        })
+    except Exception:
+        pass
 
 
 def render_current_preview(state: PrintMasterState) -> io.BytesIO:
@@ -110,9 +148,16 @@ def format_status_caption(state: PrintMasterState) -> str:
     if state.mode == "school_labels":
         name = state.school_student_name.strip() or t("school_sample_student", lang)
         grade = state.school_grade.strip() or t("school_sample_grade", lang)
-        theme_key = state.school_theme if state.school_theme in ("classic", "football", "space", "cute", "science") else "classic"
+        theme_key = state.school_theme
         theme_name = t(f"theme_{theme_key}", lang)
-        subjects = t("school_subj_auto", lang) if state.school_subject_mode == "auto" else t("school_subj_blank", lang)
+
+        if getattr(state, "school_subject_mode", "auto") == "single" and getattr(state, "school_selected_subject", ""):
+            subjects = state.school_selected_subject
+        elif getattr(state, "school_subject_mode", "auto") == "auto":
+            subjects = t("school_subj_auto", lang)
+        else:
+            subjects = t("school_subj_blank", lang)
+
         photo_status = t("on", lang) if state.school_custom_avatar else t("off", lang)
 
         caption = (
@@ -306,6 +351,7 @@ async def school_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     state = get_user_state(user.id, chat_id, user)
     state.mode = "school_labels"
+    set_user_mode(user.id, "school_labels")
     state.current_menu = "main"
     state.waiting_for_input = None
 
@@ -385,6 +431,11 @@ async def handle_photo_upload(update: Update, context: ContextTypes.DEFAULT_TYPE
         record_user_interaction(user, "upload_image", f"{img.size[0]}x{img.size[1]} {ext}")
         record_upload(user.id)
 
+        # Auto-activate avatar badge if uploading while in School Labels mode
+        if state.mode == "school_labels":
+            state.school_custom_avatar = True
+            _persist_school_state(state)
+
         await status_msg.delete()
 
         # Render preview and send new control center
@@ -420,6 +471,15 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
     if data == "noop":
         return
+
+    # Enforce school_labels mode on any school-specific callback
+    if (
+        data.startswith(("school", "set_school", "toggle_school", "pick_school", "menu:school", "input:school"))
+        or data == "cycle_school_font"
+    ):
+        if state.mode != "school_labels":
+            state.mode = "school_labels"
+            set_user_mode(user.id, "school_labels")
 
     # Admin Dashboard Callbacks
     if data.startswith("admin:"):
@@ -542,6 +602,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             state.mode = "school_labels"
         else:
             state.mode = "duplicator"
+        set_user_mode(user.id, state.mode)
         state.current_menu = "main"
         await _update_view(query, state)
         return
@@ -551,6 +612,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         new_mode = data.split(":", 1)[1]
         if new_mode in ("duplicator", "poster", "school_labels"):
             state.mode = new_mode
+            set_user_mode(user.id, new_mode)
             state.current_menu = "main"
             state.waiting_for_input = None
             await _update_view(query, state)
@@ -559,21 +621,52 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     # School Labels callbacks
     if data == "toggle_school_subjects":
         state.school_subject_mode = "blank" if state.school_subject_mode == "auto" else "auto"
+        _persist_school_state(state)
+        await _update_view(query, state)
+        return
+
+    if data == "cycle_school_font":
+        scales = [0.85, 1.0, 1.15, 1.30]
+        curr = getattr(state, "school_font_scale", 1.0)
+        closest_idx = min(range(len(scales)), key=lambda i: abs(scales[i] - curr))
+        state.school_font_scale = scales[(closest_idx + 1) % len(scales)]
+        _persist_school_state(state)
+        await _update_view(query, state)
+        return
+
+    if data.startswith("set_school_subj:"):
+        mode_val = data.split(":", 1)[1]
+        state.school_subject_mode = mode_val
+        state.school_selected_subject = ""
+        _persist_school_state(state)
+        state.current_menu = "main"
+        await _update_view(query, state)
+        return
+
+    if data.startswith("pick_school_subj:"):
+        subj = data.split(":", 1)[1]
+        state.school_subject_mode = "single"
+        state.school_selected_subject = subj
+        _persist_school_state(state)
+        state.current_menu = "main"
         await _update_view(query, state)
         return
 
     if data == "toggle_school_avatar":
         state.school_custom_avatar = not state.school_custom_avatar
+        _persist_school_state(state)
         await _update_view(query, state)
         return
 
     if data == "toggle_school_view":
         state.school_preview_view = "sheet" if getattr(state, "school_preview_view", "single") == "single" else "single"
+        _persist_school_state(state)
         await _update_view(query, state)
         return
 
     if data.startswith("set_school_theme:"):
         state.school_theme = data.split(":", 1)[1]
+        _persist_school_state(state)
         state.current_menu = "main"
         await _update_view(query, state)
         return
@@ -743,6 +836,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             "custom_overlap": t("prompt_poster_overlap", state.language),
             "school_name": t("prompt_school_name", state.language),
             "school_grade": t("prompt_school_grade", state.language),
+            "school_subject": t("prompt_school_subject", state.language),
         }
         msg = prompt_map.get(input_type, "Please type the value:")
         cancel_hint = t("input_cancel_hint", state.language)
@@ -879,15 +973,27 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif input_type == "school_name":
             state.school_student_name = text.strip()[:60]
+            _persist_school_state(state)
             await update.message.reply_text(f"✅ *{state.school_student_name}*", parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "school_grade":
             state.school_grade = text.strip()[:50]
+            _persist_school_state(state)
             await update.message.reply_text(f"✅ *{state.school_grade}*", parse_mode=ParseMode.MARKDOWN)
+
+        elif input_type == "school_subject":
+            state.school_selected_subject = text.strip()[:50]
+            state.school_subject_mode = "single"
+            _persist_school_state(state)
+            await update.message.reply_text(f"✅ *{state.school_selected_subject}*", parse_mode=ParseMode.MARKDOWN)
 
     except Exception as e:
         logger.exception("Error parsing text input: %s", e)
         await update.message.reply_text("❌ An error occurred processing the input.")
+
+    if input_type.startswith("school_"):
+        state.mode = "school_labels"
+        set_user_mode(user.id, "school_labels")
 
     # Re-send or refresh control center
     preview_buf = render_current_preview(state)

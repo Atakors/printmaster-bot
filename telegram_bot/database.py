@@ -6,6 +6,7 @@ Tracks user profiles, interaction frequency, uploads, and exports using SQLite.
 import sqlite3
 import io
 import csv
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -49,6 +50,10 @@ def init_db():
         existing_cols = [r["name"] for r in cursor.fetchall()]
         if "bot_language" not in existing_cols:
             cursor.execute("ALTER TABLE users ADD COLUMN bot_language TEXT DEFAULT 'en'")
+        if "user_mode" not in existing_cols:
+            cursor.execute("ALTER TABLE users ADD COLUMN user_mode TEXT DEFAULT 'duplicator'")
+        if "school_state_json" not in existing_cols:
+            cursor.execute("ALTER TABLE users ADD COLUMN school_state_json TEXT DEFAULT ''")
 
         # Detailed event activity log
         cursor.execute("""
@@ -131,10 +136,21 @@ def record_export(user_id: int, export_type: str):
 
 def set_user_language(user_id: int, lang: str):
     """Updates the user's preferred bot interface language."""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET bot_language = ? WHERE user_id = ?", (lang, user_id))
-        conn.commit()
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute("UPDATE users SET bot_language = ?, last_seen = ? WHERE user_id = ?", (lang, now, user_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO users (user_id, bot_language, first_seen, last_seen, interaction_count, images_uploaded, pdf_exports, image_exports)
+                    VALUES (?, ?, ?, ?, 1, 0, 0, 0)
+                """, (user_id, lang, now, now))
+            conn.commit()
+    except Exception as e:
+        logger.exception("Error saving user language: %s", e)
 
 
 def get_user_language(user_id: int, default_lang: str = "en") -> str:
@@ -155,6 +171,73 @@ def get_user_language(user_id: int, default_lang: str = "en") -> str:
     except Exception:
         pass
     return default_lang
+
+
+def set_user_mode(user_id: int, mode: str):
+    """Persists the user's active editor mode ('duplicator', 'poster', 'school_labels')."""
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute("UPDATE users SET user_mode = ?, last_seen = ? WHERE user_id = ?", (mode, now, user_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO users (user_id, user_mode, first_seen, last_seen, interaction_count, images_uploaded, pdf_exports, image_exports)
+                    VALUES (?, ?, ?, ?, 1, 0, 0, 0)
+                """, (user_id, mode, now, now))
+            conn.commit()
+    except Exception as e:
+        logger.exception("Error saving user mode: %s", e)
+
+
+def get_user_mode(user_id: int, default_mode: str = "duplicator") -> str:
+    """Retrieves the persisted user editor mode."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user_mode FROM users WHERE user_id = ?", (user_id,))
+            row = cursor.fetchone()
+            if row and row["user_mode"]:
+                return row["user_mode"]
+    except Exception:
+        pass
+    return default_mode
+
+
+def save_school_state(user_id: int, state_data: dict):
+    """Persists school label fields in database as JSON."""
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        data_json = json.dumps(state_data)
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+            if cursor.fetchone():
+                cursor.execute("UPDATE users SET school_state_json = ?, last_seen = ? WHERE user_id = ?", (data_json, now, user_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO users (user_id, school_state_json, first_seen, last_seen, interaction_count, images_uploaded, pdf_exports, image_exports)
+                    VALUES (?, ?, ?, ?, 1, 0, 0, 0)
+                """, (user_id, data_json, now, now))
+            conn.commit()
+    except Exception as e:
+        logger.exception("Error saving school state: %s", e)
+
+
+def load_school_state(user_id: int) -> dict:
+    """Loads persisted school label fields from database."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT school_state_json FROM users WHERE user_id = ?", (user_id,))
+            row = cursor.fetchone()
+            if row and row["school_state_json"]:
+                return json.loads(row["school_state_json"])
+    except Exception:
+        pass
+    return {}
 
 
 

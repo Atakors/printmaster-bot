@@ -379,11 +379,60 @@ def run_tests():
     assert fr_school_kbd is not None
 
     state.language = "en"
-    state.school_theme = "football"
+    state.school_theme = "boy_football"
     en_school_caption = format_status_caption(state)
     assert "School Notebook Labels" in en_school_caption
     en_school_kbd = build_keyboard(state)
     assert en_school_kbd is not None
+
+    # Test Font Scaling (Compact, Normal, Large, Huge)
+    for scale in [0.85, 1.0, 1.15, 1.30]:
+        state.school_font_scale = scale
+        img_scaled = render_single_label(state, subject="Mathematics")
+        assert img_scaled.size == (1039, 590)
+    print("  -> Font scaling (0.85x to 1.30x) verified.")
+
+    # Test Subject Picker: Single Subject & 16 Subjects
+    from telegram_bot.school_labels import CORE_SUBJECTS
+    assert len(CORE_SUBJECTS["en"]) >= 16
+    assert len(CORE_SUBJECTS["ar"]) >= 16
+    assert len(CORE_SUBJECTS["fr"]) >= 16
+    state.school_subject_mode = "single"
+    state.school_selected_subject = "Physics / Chimie"
+    single_subj_img = render_single_label(state)
+    assert single_subj_img.size == (1039, 590)
+    print("  -> Subject selection & 16 subjects per language verified.")
+
+    # Test Database Persistence across simulated server reboot
+    from telegram_bot.handlers import USER_SESSIONS, get_user_state, _persist_school_state
+    from telegram_bot.database import set_user_mode, get_user_mode, save_school_state, load_school_state
+
+    test_uid = 999888777
+    test_state = get_user_state(test_uid, test_uid)
+    test_state.mode = "school_labels"
+    set_user_mode(test_uid, "school_labels")
+    test_state.school_student_name = "Alexandre Dumas"
+    test_state.school_grade = "Terminale S"
+    test_state.school_theme = "boy_superhero"
+    test_state.school_font_scale = 1.15
+    test_state.school_subject_mode = "single"
+    test_state.school_selected_subject = "Philosophie"
+    _persist_school_state(test_state)
+
+    # Simulate server reboot / memory clear
+    USER_SESSIONS.clear()
+    assert test_uid not in USER_SESSIONS
+
+    # Restore session
+    restored_state = get_user_state(test_uid, test_uid)
+    assert restored_state.mode == "school_labels", f"Expected school_labels, got {restored_state.mode}"
+    assert restored_state.school_student_name == "Alexandre Dumas"
+    assert restored_state.school_grade == "Terminale S"
+    assert restored_state.school_theme == "boy_superhero"
+    assert restored_state.school_font_scale == 1.15
+    assert restored_state.school_subject_mode == "single"
+    assert restored_state.school_selected_subject == "Philosophie"
+    print("  -> Database persistence across server reboot verified 100%.")
 
     print("  ✅ School Notebook Label Generator passed all tests.")
 

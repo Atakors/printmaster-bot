@@ -150,22 +150,25 @@ THEME_CONFIGS = {
     },
 }
 
-# 10 Standard School Subjects per Language
+# Standard School Subjects per Language (16 Subjects)
 CORE_SUBJECTS = {
     "en": [
-        "Mathematics", "English", "Science", "History",
-        "Geography", "Art & Music", "Computer Sci.", "Physical Ed.",
-        "Literature", "Homework Book",
+        "Mathematics", "English", "Science", "Physics",
+        "Chemistry", "Biology", "History", "Geography",
+        "Computer Sci.", "Literature", "Art & Music", "Physical Ed.",
+        "Social Studies", "French", "Spanish", "Homework Book",
     ],
     "ar": [
         "الرياضيات", "اللغة العربية", "التربية الإسلامية", "العلوم الطبيعية",
-        "التاريخ والجغرافيا", "اللغة الفرنسية", "اللغة الإنجليزية", "التربية المدنية",
-        "الفيزياء والتكنولوجيا", "دفتر الملاحظات",
+        "الفيزياء والتكنولوجيا", "التاريخ والجغرافيا", "اللغة الفرنسية", "اللغة الإنجليزية",
+        "التربية المدنية", "الإعلام الآلي", "التربية التشكيلية", "التربية البدنية",
+        "الفلسفة", "العلوم الاقتصادية", "دفتر الأنشطة", "دفتر الملاحظات",
     ],
     "fr": [
-        "Mathématiques", "Français", "Sciences (SVT)", "Histoire - Géo",
-        "Anglais", "Physique - Chimie", "Arabe", "Arts Plastiques",
-        "Éducation Civique", "Cahier de Texte",
+        "Mathématiques", "Français", "Sciences (SVT)", "Physique - Chimie",
+        "Histoire - Géo", "Anglais", "Arabe", "Informatique",
+        "Arts Plastiques", "Éducation Civique", "Philosophie", "Éducation Physique",
+        "Espagnol", "Sciences Éco", "Cahier de Texte", "Cahier de Devoirs",
     ],
 }
 
@@ -317,8 +320,9 @@ def render_single_label(
     )
     draw.rectangle([6, header_h - 22, CANONICAL_W - 7, header_h], fill=theme["primary"])
 
-    font_header = _get_font(48, bold=True, is_ar=is_ar)
-    font_year = _get_font(38, bold=True, is_ar=is_ar)
+    font_scale = getattr(state, "school_font_scale", 1.0)
+    font_header = _get_font(int(round(48 * min(1.15, font_scale))), bold=True, is_ar=is_ar)
+    font_year = _get_font(int(round(38 * min(1.15, font_scale))), bold=True, is_ar=is_ar)
     header_title = t("school_label_header", lang)
     year_text = state.school_year or "2026 / 2027"
 
@@ -416,10 +420,10 @@ def render_single_label(
 
     lbl_subject = t("school_field_subject", lang)
 
-    font_tag = _get_font(38, bold=True, is_ar=is_ar)
-    font_class_val = _get_font(52, bold=True, is_ar=is_ar)
-    font_subject_val = _get_font(58, bold=True, is_ar=is_ar)
-    font_dots = _get_font(36, bold=True)
+    font_tag = _get_font(int(round(38 * font_scale)), bold=True, is_ar=is_ar)
+    font_class_val = _get_font(int(round(52 * font_scale)), bold=True, is_ar=is_ar)
+    font_subject_val = _get_font(int(round(58 * font_scale)), bold=True, is_ar=is_ar)
+    font_dots = _get_font(int(round(36 * font_scale)), bold=True)
 
     # Dynamic font sizing for student name to ensure maximum boldness without truncation
     name_font_size = 62
@@ -427,7 +431,7 @@ def render_single_label(
         name_font_size = 46
     elif len(student_name) > 16:
         name_font_size = 54
-    font_name_val = _get_font(name_font_size, bold=True, is_ar=is_ar)
+    font_name_val = _get_font(int(round(name_font_size * font_scale)), bold=True, is_ar=is_ar)
 
     # --- Ribbon 1: Student Name ---
     r1_y = fy
@@ -485,7 +489,7 @@ def render_single_label(
         outline=theme["border"],
         width=2,
     )
-    font_motto = _get_font(34, bold=True, is_ar=is_ar)
+    font_motto = _get_font(int(round(34 * font_scale)), bold=True, is_ar=is_ar)
     motto_str = MOTTOES.get(lang, MOTTOES["en"])
     bbox = draw.textbbox((0, 0), motto_str, font=font_motto)
     mw = bbox[2] - bbox[0]
@@ -507,9 +511,13 @@ def render_single_label_preview(state: PrintMasterState) -> io.BytesIO:
     the sticker expands to full chat width and all typography is instantly legible.
     """
     lang = state.language
-    use_auto = (state.school_subject_mode == "auto")
     subj_list = CORE_SUBJECTS.get(lang, CORE_SUBJECTS["en"])
-    sample_subj = subj_list[0] if use_auto else None
+    if state.school_subject_mode == "single" and state.school_selected_subject:
+        sample_subj = state.school_selected_subject
+    elif state.school_subject_mode == "auto":
+        sample_subj = state.school_selected_subject or subj_list[0]
+    else:
+        sample_subj = None
 
     # Render master high-res sticker
     sticker = render_single_label(state, subject=sample_subj)
@@ -592,7 +600,12 @@ def render_school_labels_sheet(state: PrintMasterState, preview: bool = False) -
             x = int(round(x_mm * mm_to_px))
             y = int(round(y_mm * mm_to_px))
 
-            subject_text = subjects_list[idx % len(subjects_list)] if use_auto_subjects else None
+            if state.school_subject_mode == "single" and state.school_selected_subject:
+                subject_text = state.school_selected_subject
+            elif state.school_subject_mode == "auto":
+                subject_text = subjects_list[idx % len(subjects_list)]
+            else:
+                subject_text = None
             single_img = render_single_label(state, subject=subject_text, width_px=label_w_px, height_px=label_h_px)
 
             sheet.paste(single_img, (x, y))
