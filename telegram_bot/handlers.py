@@ -58,9 +58,14 @@ def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> Pr
         db_lang = get_user_language(user_id)
         if db_lang:
             state.language = db_lang
-        elif user and getattr(user, "language_code", None) and str(user.language_code).lower().startswith("ar"):
-            state.language = "ar"
-            set_user_language(user_id, "ar")
+        elif user and getattr(user, "language_code", None):
+            code = str(user.language_code).lower()
+            if code.startswith("ar"):
+                state.language = "ar"
+                set_user_language(user_id, "ar")
+            elif code.startswith("fr"):
+                state.language = "fr"
+                set_user_language(user_id, "fr")
 
         # Initialize with sample image if available
         if DEFAULT_SAMPLE_IMAGE.exists():

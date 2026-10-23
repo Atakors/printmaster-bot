@@ -146,8 +146,12 @@ def get_user_language(user_id: int, default_lang: str = "en") -> str:
             row = cursor.fetchone()
             if row and row["bot_language"]:
                 return row["bot_language"]
-            if row and row["language_code"] and str(row["language_code"]).lower().startswith("ar"):
-                return "ar"
+            if row and row["language_code"]:
+                code = str(row["language_code"]).lower()
+                if code.startswith("ar"):
+                    return "ar"
+                elif code.startswith("fr"):
+                    return "fr"
     except Exception:
         pass
     return default_lang

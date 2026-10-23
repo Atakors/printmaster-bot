@@ -99,6 +99,8 @@ def main():
     app.add_handler(CommandHandler("language", language_command))
     app.add_handler(CommandHandler("lang", language_command))
     app.add_handler(CommandHandler("ar", language_command))
+    app.add_handler(CommandHandler("fr", language_command))
+    app.add_handler(CommandHandler("en", language_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("admin", admin_command))
     app.add_handler(CommandHandler("stats", admin_command))

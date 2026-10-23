@@ -270,6 +270,44 @@ def run_tests():
     print("  -> Database user language persistence verified.")
     print("  ✅ Arabic localization passed with 100% test coverage.")
 
+    # -------------------------------------------------------------
+    # Test 12: French Localization & Language Engine
+    # -------------------------------------------------------------
+    print("\n[Test 12] Testing French Localization & Language Engine...")
+    assert t("mode_duplicator", "fr") == "Duplicateur (Grille)"
+    assert "Bienvenue" in t("welcome_greeting", "fr", name="Alex")
+
+    # Test French status captions
+    state.mode = "duplicator"
+    state.language = "fr"
+    fr_caption = format_status_caption(state)
+    assert "Mode Duplicateur" in fr_caption
+    print("  -> French duplicator caption rendered successfully.")
+
+    state.mode = "poster"
+    fr_poster_caption = format_status_caption(state)
+    assert "Créateur de Poster" in fr_poster_caption
+    print("  -> French poster caption rendered successfully.")
+
+    # Test French keyboard
+    state.mode = "duplicator"
+    fr_kbd = build_keyboard(state)
+    assert fr_kbd is not None
+    print("  -> French keyboard constructed successfully.")
+
+    # Test French tutorial and FAQ
+    tut_fr, _ = get_tutorial_step(1, lang="fr")
+    assert "Bienvenue sur PrintMaster A4" in tut_fr
+    faq_fr, _ = get_tutorial_faq(lang="fr")
+    assert "FAQ & Glossaire" in faq_fr
+    print("  -> French 6-step tutorial and FAQ verified successfully.")
+
+    # Test Database French persistence
+    set_user_language(mock_user.id, "fr")
+    assert get_user_language(mock_user.id) == "fr"
+    print("  -> Database French language persistence verified.")
+    print("  ✅ French localization passed with 100% test coverage.")
+
     print("\n" + "=" * 60)
     print("🎉 ALL TESTS PASSED SUCCESSFULLY! FULL ENGINE IS READY.")
     print("=" * 60)

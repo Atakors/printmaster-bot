@@ -214,33 +214,145 @@ TUTORIAL_FAQ_TEXT_AR = (
     "معظم الطابعات المنزلية تحتوي على هامش ميكانيكي لا تستطيع الطباعة عليه. اضبط هامش الصفحة على *قياسي (10 مم)* أو *ضيق (5 مم)* لضمان بقاء كل الصور داخل النطاق القابل للطباعة!"
 )
 
+TUTORIAL_STEPS_FR = [
+    {
+        "step": 1,
+        "title": "Bienvenue sur PrintMaster A4 🐣",
+        "content": (
+            "👋 *Bienvenue sur PrintMaster A4 !*\n\n"
+            "Avez-vous déjà essayé d'imprimer 6 photos d'identité ou 12 jolis autocollants sur une page A4, "
+            "pour vous retrouver avec une image déformée ou une taille incorrecte sur Word ou Paint ?\n\n"
+            "🎯 *PrintMaster A4 calcule tout au millimètre près !*\n\n"
+            "Voici les deux super-pouvoirs de ce bot :\n"
+            "1️⃣ *Mode Duplicateur (Grille) :* Disposez plusieurs exemplaires de n'importe quelle photo, sticker ou carte sur une feuille A4 avec des repères de découpe.\n"
+            "2️⃣ *Mode Créateur de Poster :* Transformez une photo ordinaire en un poster géant découpé sur plusieurs feuilles A4 (2×2, 3×3, etc.) avec onglets de collage !\n\n"
+            "Appuyez sur *Suivant ➡️* pour découvrir sa simplicité !"
+        ),
+    },
+    {
+        "step": 2,
+        "title": "Envoyer des photos comme un pro 📸",
+        "content": (
+            "📸 *Étape 1 : Envoyer votre image*\n\n"
+            "Vous pouvez envoyer n'importe quelle photo, illustration ou sticker directement dans cette discussion.\n\n"
+            "💡 *Conseil Pro pour une netteté cristalline :*\n"
+            "Sur Telegram, vous avez deux options pour envoyer une image :\n"
+            "• *Envoyer en Photo :* Rapide et pratique, mais Telegram compresse légèrement l'image.\n"
+            "• *Envoyer en Fichier / Document :* Préserve *100% de la qualité d'origine* sans aucune compression ! Idéal pour les textes nets, les autocollants et les photos d'identité.\n\n"
+            "👉 *Vous n'avez pas d'image sous la main ?*\n"
+            "Pas de problème ! Appuyez sur *'🧪 Tester l'image démo'* à tout moment pour vous entraîner avec notre exemple."
+        ),
+    },
+    {
+        "step": 3,
+        "title": "Mode Duplicateur (Copies multiples) 🖨️",
+        "content": (
+            "🖨️ *Étape 2 : Mode Duplicateur (Grilles et Copies)*\n\n"
+            "Besoin de plusieurs exemplaires sur une seule page ?\n\n"
+            "• *📐 Formats prédéfinis :* Un seul clic configure les dimensions officielles :\n"
+            "  - 🛂 *Photo d'identité :* 3.5 × 4.5 cm\n"
+            "  - 🇺🇸 *Visa USA / Carré :* 5.1 × 5.1 cm\n"
+            "  - 💳 *Carte de visite :* 8.5 × 5.5 cm\n"
+            "  - 📸 *Sticker Polaroid :* 7.0 × 7.0 cm\n\n"
+            "• *📊 Grilles rapides :* Appuyez sur `4-Up`, `6-Up`, ou `9-Up` pour remplir automatiquement la page.\n"
+            "• *↔️ Espacement :* Gardez un écart de 2 mm ou 3 mm entre les photos pour faciliter la découpe.\n"
+            "• *🔒 Proportions (Aspect Ratio) :* Préserve les proportions de votre photo pour éviter toute déformation !"
+        ),
+    },
+    {
+        "step": 4,
+        "title": "Traits de coupe et guides de ciseaux ✂️",
+        "content": (
+            "✂️ *Étape 3 : Traits de coupe et découpe droite*\n\n"
+            "Avez-vous déjà découpé 15 petites photos aux ciseaux pour finir avec des bords tordus ?\n\n"
+            "• *✂️ Traits de coupe (ACTIVÉ) :* Nous traçons automatiquement des repères de coin de 3.5 mm ainsi que de légères lignes pointillées autour de chaque photo.\n"
+            "• *Utilisation :* Alignez votre règle ou vos ciseaux avec les traits de coin et coupez parfaitement droit !\n"
+            "• *🔲 Bordures :* Activez un contour coloré (*Noir, Gris, Blanc, Rouge*) avec épaisseur réglable pour une finition professionnelle."
+        ),
+    },
+    {
+        "step": 5,
+        "title": "Mode Créateur de Poster Géant 🧩",
+        "content": (
+            "🧩 *Étape 4 : Créer des posters muraux géants*\n\n"
+            "Vous n'avez pas d'imprimante grand format coûteuse ? Créez d'immenses posters avec du simple papier A4 standard !\n\n"
+            "• Appuyez sur *🔀 Mode* pour basculer en *Créateur de Poster*.\n"
+            "• Choisissez votre format :\n"
+            "  - *2 × 2 :* 4 feuilles A4 (~42 × 60 cm, équivalent d'un poster A2 !)\n"
+            "  - *3 × 3 :* 9 feuilles A4 (~63 × 89 cm, affiche géante A0 !)\n"
+            "  - *Personnalisé :* Jusqu'à 12 × 12 feuilles pour des fresques murales.\n\n"
+            "• *🏷 Guides de collage et numéros :*\n"
+            "Chaque feuille s'imprime avec un chevauchement de 10 mm indiquant *'Coller la feuille #2 ici'* et le numéro de position. "
+            "L'assemblage est aussi facile et ludique qu'un puzzle !"
+        ),
+    },
+    {
+        "step": 6,
+        "title": "Imprimer chez soi (La règle d'or #1 !) 🖨️",
+        "content": (
+            "🖨️ *Étape 5 : Imprimer votre fichier exporté*\n\n"
+            "Une fois satisfait de l'aperçu, appuyez sur *📄 Exporter PDF*.\n\n"
+            "⚠️ *L'ERREUR #1 DES DÉBUTANTS :*\n"
+            "Lorsque la fenêtre d'impression s'ouvre, les imprimantes sélectionnent souvent par défaut *'Ajuster à la zone d'impression'* ou *'Mettre à l'échelle'*.\n\n"
+            "👉 **Sélectionnez TOUJOURS : 'Taille réelle' ou 'Échelle 100%'** dans vos paramètres d'impression !\n"
+            "• Cela garantit que vos photos d'identité ou cartes sortent à leurs *dimensions millimétriques exactes* !\n"
+            "• Vérifiez que le format de papier est bien **A4** (210 × 297 mm).\n"
+            "• Utilisez du papier photo glacé (Glossy) pour des couleurs éclatantes et professionnelles !\n\n"
+            "🎉 *Vous êtes maintenant prêt à imprimer comme un pro !*"
+        ),
+    },
+]
+
+TUTORIAL_FAQ_TEXT_FR = (
+    "❓ *PrintMaster A4 — FAQ & Glossaire Débutant*\n\n"
+    "• *Qu'est-ce que le 'Verrouillage des proportions' ?*\n"
+    "Il préserve le ratio largeur/hauteur de votre photo pour que les visages ne soient jamais étirés ou écrasés.\n\n"
+    "• *Qu'est-ce que la 'Rotation auto 90° pour rendement max' ?*\n"
+    "Le bot calcule si faire pivoter votre photo permet de placer PLUS de copies sur la feuille. Si cela économise du papier, il pivote automatiquement !\n\n"
+    "• *Qu'est-ce que le 'Tirage groupé (Batch)' ?*\n"
+    "Si vous avez besoin de 50 stickers pour un événement, entrez 50. Le bot génère un seul document PDF multi-pages contenant exactement 50 copies sans gaspillage !\n\n"
+    "• *PDF vs Image 300 DPI — Que choisir ?*\n"
+    "  - *📄 PDF :* Idéal pour les imprimantes de bureau ou maison à échelle millimétrique exacte.\n"
+    "  - *🖼 Image 300 DPI :* Idéal si vous apportez le fichier sur clé USB à un laboratoire photo ou une borne d'impression.\n\n"
+    "• *Pourquoi mon imprimante coupe-t-elle les bords ?*\n"
+    "La plupart des imprimantes ont des marges mécaniques non imprimables. Réglez la marge sur *Standard (10 mm)* ou *Étroite (5 mm)* pour que tout reste dans la zone imprimable !"
+)
+
 # Backwards compatibility aliases
 TUTORIAL_STEPS = TUTORIAL_STEPS_EN
 TUTORIAL_FAQ_TEXT = TUTORIAL_FAQ_TEXT_EN
 
 
-
 def get_tutorial_step(step_idx: int, lang: str = "en") -> Tuple[str, InlineKeyboardMarkup]:
     """Returns the formatted text and navigation keyboard for a given step (1-indexed)."""
-    steps_list = TUTORIAL_STEPS_AR if lang == "ar" else TUTORIAL_STEPS_EN
-    step_idx = max(1, min(len(steps_list), step_idx))
-    step_data = steps_list[step_idx - 1]
-    total_steps = len(steps_list)
-
     if lang == "ar":
-        header = f"📚 *دليل المبتدئين* — الخطوة {step_idx} من {total_steps}\n\n"
+        steps_list = TUTORIAL_STEPS_AR
+        header = f"📚 *دليل المبتدئين* — الخطوة {step_idx} من {len(steps_list)}\n\n"
         btn_back = "⬅️ السابق"
         btn_next = "التالي ➡️"
         btn_faq = "❓ الأسئلة الشائعة"
         btn_demo = "🧪 تجربة صورة توضيحية"
         btn_exit = "« الخروج إلى المحرر الرئيسي"
+    elif lang == "fr":
+        steps_list = TUTORIAL_STEPS_FR
+        header = f"📚 *Tutoriel Débutant* — Étape {step_idx} sur {len(steps_list)}\n\n"
+        btn_back = "⬅️ Précédent"
+        btn_next = "Suivant ➡️"
+        btn_faq = "❓ FAQ & Glossaire"
+        btn_demo = "🧪 Tester l'image démo"
+        btn_exit = "« Retour à l'Éditeur"
     else:
-        header = f"📚 *Beginner Tutorial* — Step {step_idx} of {total_steps}\n\n"
+        steps_list = TUTORIAL_STEPS_EN
+        header = f"📚 *Beginner Tutorial* — Step {step_idx} of {len(steps_list)}\n\n"
         btn_back = "⬅️ Back"
         btn_next = "Next ➡️"
         btn_faq = "❓ FAQ & Glossary"
         btn_demo = "🧪 Try Demo Image"
         btn_exit = "« Exit Tutorial to Editor"
+
+    step_idx = max(1, min(len(steps_list), step_idx))
+    step_data = steps_list[step_idx - 1]
+    total_steps = len(steps_list)
 
     body = step_data["content"]
     full_text = header + body
@@ -273,6 +385,11 @@ def get_tutorial_faq(lang: str = "en") -> Tuple[str, InlineKeyboardMarkup]:
         btn_back = "« العودة للدليل"
         btn_demo = "🧪 تجربة صورة توضيحية"
         btn_exit = "« العودة للمحرر الرئيسي"
+    elif lang == "fr":
+        faq_text = TUTORIAL_FAQ_TEXT_FR
+        btn_back = "« Retour au Tutoriel"
+        btn_demo = "🧪 Tester l'image démo"
+        btn_exit = "« Retour à l'Éditeur"
     else:
         faq_text = TUTORIAL_FAQ_TEXT_EN
         btn_back = "« Back to Tutorial"

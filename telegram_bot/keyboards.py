@@ -336,15 +336,19 @@ def build_poster_overlap_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
 
 
 def build_language_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
-    """Builds interactive language selector (English / العربية)."""
+    """Builds interactive language selector (English / العربية / Français)."""
     lang = state.language
     en_mark = "✅ " if lang == "en" else ""
     ar_mark = "✅ " if lang == "ar" else ""
+    fr_mark = "✅ " if lang == "fr" else ""
 
     rows = [
         [
             InlineKeyboardButton(f"{en_mark}🇬🇧 English", callback_data="set_lang:en"),
             InlineKeyboardButton(f"{ar_mark}🇸🇦 العربية", callback_data="set_lang:ar"),
+        ],
+        [
+            InlineKeyboardButton(f"{fr_mark}🇫🇷 Français", callback_data="set_lang:fr"),
         ],
         [
             InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),

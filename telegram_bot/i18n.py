@@ -32,9 +32,10 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         ),
         
         # Languages
-        "lang_switch_title": "🌐 *Choose Your Language / اختر لغتك:*",
+        "lang_switch_title": "🌐 *Choose Your Language / Choisir la langue / اختر لغتك:*",
         "lang_en": "🇬🇧 English",
         "lang_ar": "🇸🇦 العربية",
+        "lang_fr": "🇫🇷 Français",
         "lang_switched": "Language changed to English! 🇬🇧",
 
         # Modes
@@ -224,9 +225,10 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         ),
 
         # Languages
-        "lang_switch_title": "🌐 *اختر لغة البوت / Choose Your Language:*",
+        "lang_switch_title": "🌐 *اختر لغة البوت / Choose Language / Choisir la langue:*",
         "lang_en": "🇬🇧 English",
         "lang_ar": "🇸🇦 العربية",
+        "lang_fr": "🇫🇷 Français",
         "lang_switched": "تم تغيير لغة البوت إلى العربية بنجاح! 🇸🇦",
 
         # Modes
@@ -388,6 +390,199 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "export_image_generating": "⏳ *جارٍ معالجة وتوليد صورة عالية الدقة 300 DPI... يرجى الانتظار لحظات.*",
         "export_image_ready": "🖼 *تم تصدير الصورة فائقة الدقة 300 DPI بنجاح!*",
         "upload_received": "✅ *تم استلام الصورة بنجاح وتحديث المعاينة أدناه!*",
+    },
+
+    # =========================================================================
+    # FRENCH (fr) - Français
+    # =========================================================================
+    "fr": {
+        # App Info & Brand
+        "app_title": "PrintMaster A4",
+        "welcome_greeting": "👋 *Bienvenue sur PrintMaster A4, {name} !*",
+        "welcome_body": (
+            "🖨️ *Assistant intelligent de duplication de photos et de création de posters sur papier A4 standard.*\n\n"
+            "✨ *Fonctionnalités principales :*\n"
+            "• 📸 Dupliquez photos d'identité, stickers et badges sur 1 page avec repères de coupe.\n"
+            "• 🧩 Découpez de grandes photos sur plusieurs feuilles A4 (2×2, 3×3) pour créer des posters géants avec onglets de collage.\n"
+            "• 📄 Exportez directement en PDF vectoriel prêt à imprimer ou image haute résolution 300 DPI.\n\n"
+            "👉 *Envoyez une photo pour commencer, ou testez l'exemple ci-dessous !*"
+        ),
+        "help_text": (
+            "📖 *PrintMaster A4 — Guide des commandes*\n\n"
+            "• /start — Ouvrir l'éditeur et l'aperçu en direct\n"
+            "• /tutorial — Tutoriel pas-à-pas pour débutants avec conseils d'impression\n"
+            "• /language — Changer de langue (English / العربية / Français)\n"
+            "• /cancel — Annuler la saisie en cours\n"
+            "• /help — Afficher ce message d'aide\n\n"
+            "💡 *Conseil Pro :* Envoyez vos images en tant que **Fichier / Document** sur Telegram pour conserver 100% de la qualité sans compression !"
+        ),
+
+        # Languages
+        "lang_switch_title": "🌐 *Choisir la langue / Choose Your Language / اختر لغتك :*",
+        "lang_en": "🇬🇧 English",
+        "lang_ar": "🇸🇦 العربية",
+        "lang_fr": "🇫🇷 Français",
+        "lang_switched": "Langue changée en Français avec succès ! 🇫🇷",
+
+        # Modes
+        "mode_duplicator_btn": "🔀 Mode : 🖨 Duplicateur (Grille)",
+        "mode_poster_btn": "🔀 Mode : 🧩 Créateur de Poster",
+        "mode_duplicator": "Duplicateur (Grille)",
+        "mode_poster": "Créateur de Poster",
+
+        # Main Menu Buttons
+        "btn_size_presets": "📐 Formats Prédéfinis",
+        "btn_quick_grids": "📊 Grilles Rapides",
+        "btn_custom_size": "📏 Format : {w:.1f}×{h:.1f} cm",
+        "btn_gap": "↔️ Espacement : {gap:.1f} mm",
+        "btn_page_margins": "{icon} Page & Marges",
+        "btn_trimming": "✂️ Découpe & Bordures",
+        "btn_batch": "📦 Tirage groupé : {text}",
+        "btn_poster_grid": "🧩 Grille Poster ({cols}×{rows})",
+        "btn_poster_overlap": "📏 Recouvrement ({overlap:.0f} mm)",
+        "btn_glue_guides": "🏷 Guides de colle : {status}",
+        "btn_export_pdf": "📄 Exporter PDF (Vectoriel)",
+        "btn_export_image300": "🖼 Exporter 300 DPI",
+        "btn_tutorial": "📚 Tutoriel Débutant",
+        "btn_about": "ℹ️ À propos & Support",
+        "btn_language": "🌐 Langue / Language",
+        "btn_refresh": "🔄 Actualiser l'aperçu",
+        "btn_back_main": "« Retour au Menu Principal",
+        "btn_try_demo": "🧪 Tester l'image démo",
+
+        # Captions - Duplicator
+        "caption_duplicator_header": "✨ *PrintMaster A4 — Mode Duplicateur*",
+        "caption_grid": "📊 *Disposition en grille :* `{cols} × {rows}` ({copies} photos / page)",
+        "caption_size": "📏 *Taille d'image :* `{w:.1f} × {h:.1f} cm`",
+        "caption_spacing": "↔️ *Espacement entre photos :* `{gap:.1f} mm`",
+        "caption_page": "📄 *Format de page :* {orient}",
+        "caption_margins": "📐 *Marges :* `{margins}`",
+        "caption_batch_single": "• *Tirage :* Page A4 unique",
+        "caption_batch_multi": "• *Tirage total :* `{copies}` exemplaires sur `{sheets}` feuilles A4",
+        "caption_options": "✂️ *Options :* Traits de coupe : `{cuts}` | Bordure : `{border}` | Rotation auto : `{rotate}`",
+        "caption_footer_hint": "💡 _Appuyez sur les boutons ci-dessous pour personnaliser, ou envoyez une nouvelle photo !_",
+
+        # Captions - Poster
+        "caption_poster_header": "✨ *PrintMaster A4 — Créateur de Poster*",
+        "caption_tiling": "🧩 *Découpage en tuiles :* `{cols} × {rows}` (`{sheets}` Feuilles A4)",
+        "caption_poster_size": "📐 *Taille globale estimée :* `~{w:.1f} × {h:.1f} cm`",
+        "caption_overlap": "📏 *Zone de chevauchement :* `{overlap:.0f} mm`",
+        "caption_guides": "🏷 *Lignes de colle & Numéros :* `{status}`",
+        "caption_poster_sheet": "📄 *Taille de feuille :* {orient}",
+        "caption_poster_margin": "📐 *Marges d'impression :* `{margins}`",
+        "caption_poster_hint": "💡 _Chaque section sera mise à l'échelle et imprimée sur une feuille A4 avec des repères d'assemblage !_",
+
+        # Orientation & Status words
+        "portrait": "Portrait",
+        "landscape": "Paysage",
+        "portrait_full": "Portrait (210 × 297 mm)",
+        "landscape_full": "Paysage (297 × 210 mm)",
+        "on": "ACTIVÉ",
+        "off": "DÉSACTIVÉ",
+        "locked": "🔒 Verrouillé",
+        "unlocked": "🔓 Libre",
+        "center": "Centré",
+        "top_left": "Haut-Gauche",
+
+        # Size Presets
+        "preset_passport": "🛂 Photo d'identité (3.5 × 4.5 cm)",
+        "preset_us_visa": "🇺🇸 Visa USA / Carré (5.1 × 5.1 cm)",
+        "preset_business_card": "💳 Carte de visite (8.5 × 5.5 cm)",
+        "preset_wallet": "👛 Photo portefeuille (6.4 × 8.9 cm)",
+        "preset_polaroid": "📸 Sticker Polaroid (7.0 × 7.0 cm)",
+        "preset_small_sticker": "🏷️ Petit sticker (3.0 × 3.0 cm)",
+        "preset_photo_10x15": "🖼 Photo 10×15 cm (4×6 po)",
+        "preset_mini_id": "🪪 Mini photo d'identité (2.5 × 3.2 cm)",
+
+        # Custom Size Submenu
+        "custom_size_title": "📏 *Dimensions personnalisées & Proportions*",
+        "custom_size_hint": "Ajustez largeur/hauteur par pas de 5mm ou tapez les valeurs exactes :",
+        "btn_width": "Largeur : {w:.1f} cm",
+        "btn_height": "Hauteur : {h:.1f} cm",
+        "btn_ratio": "Proportions : {status}",
+        "btn_step_w_plus": "➕ Largeur +5mm",
+        "btn_step_w_minus": "➖ Largeur -5mm",
+        "btn_step_h_plus": "➕ Hauteur +5mm",
+        "btn_step_h_minus": "➖ Hauteur -5mm",
+
+        # Spacing Submenu
+        "spacing_title": "↔️ *Espacement entre les photos*",
+        "spacing_hint": "Choisissez un écart prédéfini ou entrez une valeur personnalisée :",
+        "btn_step_gap_plus": "➕ Écart +0.5mm",
+        "btn_step_gap_minus": "➖ Écart -0.5mm",
+        "btn_enter_custom_gap": "✏️ Entrer un espacement personnalisé",
+
+        # Margins Submenu
+        "margins_title": "📄 *Orientation & Marges de page*",
+        "btn_toggle_orient": "Orientation : {status}",
+        "btn_margin_guide_toggle": "👁 Lignes de marge : {status}",
+        "margin_standard": "Standard (10mm)",
+        "margin_narrow": "Étroite (5mm)",
+        "margin_borderless": "Sans marge (0mm)",
+        "margin_wide": "Large (20mm)",
+        "btn_enter_custom_margin": "✏️ Entrer une marge personnalisée (mm)",
+
+        # Trimming & Cuts Submenu
+        "trimming_title": "✂️ *Traits de coupe, Bordures & Rotation auto*",
+        "btn_cut_marks_toggle": "✂️ Traits de coupe : {status}",
+        "btn_border_toggle": "🔲 Bordure : {status}",
+        "btn_border_color": "Couleur : {color}",
+        "btn_border_thick": "Épaisseur : {thick:.1f}mm",
+        "btn_auto_rotate_toggle": "🔄 Rotation auto 90° : {status}",
+        "btn_alignment_toggle": "🎯 Alignement : {align}",
+
+        # Batch Copies Submenu
+        "batch_title": "📦 *Impression groupée multi-pages*",
+        "batch_single_option": "1 Page (Auto)",
+        "batch_copies_option": "{n} Copies",
+        "btn_limit_copies_toggle": "Limite par feuille : {status}",
+        "btn_enter_custom_batch": "✏️ Entrer le nombre total de copies",
+
+        # Poster Submenus
+        "poster_grid_title": "🧩 *Sélectionner le découpage du poster*",
+        "btn_step_col_plus": "➕ Colonne",
+        "btn_step_col_minus": "➖ Colonne",
+        "btn_step_row_plus": "➕ Ligne",
+        "btn_step_row_minus": "➖ Ligne",
+        "btn_enter_custom_poster_grid": "✏️ Entrer une grille (ex: 3x4)",
+        "poster_overlap_title": "📏 *Marges de chevauchement du poster*",
+        "btn_glue_lines_toggle": "Repères de colle & numéros : {status}",
+        "btn_enter_custom_overlap": "✏️ Entrer un chevauchement (mm)",
+        "overlap_edge": "0 mm (Bord à bord)",
+
+        # About Submenu
+        "about_title": "ℹ️ *À propos de PrintMaster A4*",
+        "about_body": (
+            "PrintMaster A4 a été conçu à l'origine comme une application Windows haute précision "
+            "pour la duplication de photos et l'impression de posters grand format.\n\n"
+            "Ce bot Telegram apporte le même moteur mathématique directement sur votre téléphone, "
+            "permettant la génération instantanée de PDF vectoriels et d'images 300 DPI haute résolution.\n\n"
+            "👨‍💻 *Développeur :* AITADZ PRO\n"
+            "🌐 *Support & Contact :*"
+        ),
+        "btn_dev_telegram": "✈️ Telegram Développeur",
+        "btn_facebook": "📘 Facebook",
+        "btn_whatsapp": "💬 Support WhatsApp",
+
+        # Interactive Prompts
+        "prompt_width": "✏️ *Entrez la LARGEUR souhaitée en cm* (ex: `3.5` ou `5`) :",
+        "prompt_height": "✏️ *Entrez la HAUTEUR souhaitée en cm* (ex: `4.5` ou `5.1`) :",
+        "prompt_gap": "✏️ *Entrez l'espacement en mm* (ex: `2.5` ou `0`) :",
+        "prompt_margin": "✏️ *Entrez la marge de page en mm* (ex: `10` ou `5`) :",
+        "prompt_batch": "✏️ *Entrez le nombre TOTAL de copies désiré* (ex: `50`) :",
+        "prompt_poster_grid": "✏️ *Entrez la grille sous format Colonnes x Lignes* (ex: `2x2` ou `3x4`) :",
+        "prompt_poster_overlap": "✏️ *Entrez le chevauchement en mm* (ex: `10` ou `15`) :",
+        "input_cancel_hint": "\n\n_Envoyez /cancel pour annuler sans enregistrer._",
+        "input_cancelled": "❌ Saisie annulée. Retour au menu principal.",
+        "input_invalid_number": "⚠️ *Valeur invalide.* Veuillez entrer un nombre positif valide (ex: `3.5`) :",
+        "input_invalid_grid": "⚠️ *Format invalide.* Veuillez entrer sous la forme `ColonnesxLignes` (ex: `2x2` ou `3x4`) :",
+
+        # Exporting Messages
+        "export_pdf_generating": "⏳ *Génération du PDF vectoriel haute définition en cours... Veuillez patienter.*",
+        "export_pdf_ready": "📄 *Votre document PDF vectoriel prêt pour l'impression est prêt !*",
+        "export_image_generating": "⏳ *Rendu de l'image haute définition 300 DPI... Veuillez patienter.*",
+        "export_image_ready": "🖼 *Votre image haute résolution 300 DPI est prête !*",
+        "upload_received": "✅ *Image reçue et chargée avec succès !* Aperçu mis à jour ci-dessous.",
     },
 }
 
