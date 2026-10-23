@@ -418,6 +418,9 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     # Record user button click
     record_user_interaction(user, "button_click", data[:40])
 
+    if data == "noop":
+        return
+
     # Admin Dashboard Callbacks
     if data.startswith("admin:"):
         action = data.split(":", 1)[1]

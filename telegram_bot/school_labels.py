@@ -18,8 +18,95 @@ from .i18n import t
 CANONICAL_W = 1039
 CANONICAL_H = 590
 
-# Theme Color Schemes & Accents
+# Theme Color Schemes & Accents (5 Boys + 5 Girls + Classic)
+THEMES_ASSETS_DIR = Path(__file__).resolve().parent / "assets" / "themes"
+
 THEME_CONFIGS = {
+    # --- 👦 Boys Themes (5) ---
+    "boy_football": {
+        "primary": (4, 120, 87),       # Champion Emerald Green
+        "secondary": (236, 253, 245),  # Mint Soft
+        "border": (16, 185, 129),
+        "text_dark": (6, 78, 59),
+        "text_muted": (55, 65, 81),
+        "accent": (234, 88, 12),       # Bright Orange
+    },
+    "boy_superhero": {
+        "primary": (29, 78, 216),      # Hero Blue
+        "secondary": (239, 246, 255),  # Soft Ice Blue
+        "border": (59, 130, 246),
+        "text_dark": (30, 58, 138),
+        "text_muted": (71, 85, 105),
+        "accent": (220, 38, 38),       # Crimson Red
+    },
+    "boy_space": {
+        "primary": (76, 29, 149),      # Cosmic Purple
+        "secondary": (245, 243, 255),  # Lavender Tint
+        "border": (139, 92, 246),
+        "text_dark": (46, 16, 101),
+        "text_muted": (75, 85, 99),
+        "accent": (250, 204, 21),      # Starlight Yellow
+    },
+    "boy_cars": {
+        "primary": (185, 28, 28),      # Racing Crimson Red
+        "secondary": (254, 242, 242),  # Soft Rose Red
+        "border": (239, 68, 68),
+        "text_dark": (127, 29, 29),
+        "text_muted": (75, 85, 99),
+        "accent": (245, 158, 11),      # Speed Gold
+    },
+    "boy_gamer": {
+        "primary": (67, 56, 202),      # Cyber Indigo
+        "secondary": (238, 242, 255),  # Soft Neon Blue
+        "border": (99, 102, 241),
+        "text_dark": (49, 46, 129),
+        "text_muted": (75, 85, 99),
+        "accent": (6, 182, 212),       # Electric Cyan
+    },
+
+    # --- 👧 Girls Themes (5) ---
+    "girl_unicorn": {
+        "primary": (126, 34, 206),     # Magical Violet
+        "secondary": (250, 245, 255),  # Pastel Dream
+        "border": (192, 132, 252),
+        "text_dark": (88, 28, 135),
+        "text_muted": (107, 114, 128),
+        "accent": (236, 72, 153),      # Sparkle Pink
+    },
+    "girl_princess": {
+        "primary": (190, 24, 93),      # Royal Rose
+        "secondary": (253, 242, 248),  # Soft Pink
+        "border": (244, 114, 182),
+        "text_dark": (131, 24, 67),
+        "text_muted": (107, 114, 128),
+        "accent": (245, 158, 11),      # Golden Tiara
+    },
+    "girl_kitty": {
+        "primary": (225, 29, 72),      # Strawberry Rose
+        "secondary": (255, 241, 242),  # Soft Blush
+        "border": (251, 113, 133),
+        "text_dark": (136, 19, 55),
+        "text_muted": (107, 114, 128),
+        "accent": (16, 185, 129),      # Pastel Mint
+    },
+    "girl_butterfly": {
+        "primary": (13, 148, 136),     # Enchanted Teal
+        "secondary": (240, 253, 250),  # Mint Soft
+        "border": (45, 212, 191),
+        "text_dark": (19, 78, 74),
+        "text_muted": (71, 85, 105),
+        "accent": (244, 63, 94),       # Coral Pink
+    },
+    "girl_artist": {
+        "primary": (109, 40, 217),     # Creative Plum
+        "secondary": (245, 243, 255),  # Soft Lilac
+        "border": (167, 139, 250),
+        "text_dark": (76, 29, 149),
+        "text_muted": (75, 85, 99),
+        "accent": (245, 158, 11),      # Palette Amber
+    },
+
+    # --- Classic Minimalist ---
     "classic": {
         "primary": (30, 58, 138),      # Deep Navy
         "secondary": (239, 246, 255),  # Soft Blue Tint
@@ -28,37 +115,38 @@ THEME_CONFIGS = {
         "text_muted": (71, 85, 105),
         "accent": (245, 158, 11),      # Gold
     },
+    # Backwards compatibility aliases
     "football": {
-        "primary": (4, 120, 87),       # Champion Emerald Green
-        "secondary": (236, 253, 245),  # Mint Soft
+        "primary": (4, 120, 87),
+        "secondary": (236, 253, 245),
         "border": (16, 185, 129),
         "text_dark": (6, 78, 59),
         "text_muted": (55, 65, 81),
-        "accent": (234, 88, 12),       # Bright Orange
+        "accent": (234, 88, 12),
     },
     "space": {
-        "primary": (76, 29, 149),      # Cosmic Purple
-        "secondary": (245, 243, 255),  # Lavender Tint
+        "primary": (76, 29, 149),
+        "secondary": (245, 243, 255),
         "border": (139, 92, 246),
         "text_dark": (46, 16, 101),
         "text_muted": (75, 85, 99),
-        "accent": (250, 204, 21),      # Starlight Yellow
+        "accent": (250, 204, 21),
     },
     "cute": {
-        "primary": (225, 29, 72),      # Rose Berry
-        "secondary": (255, 241, 242),  # Pastel Rose
+        "primary": (225, 29, 72),
+        "secondary": (255, 241, 242),
         "border": (251, 113, 133),
         "text_dark": (136, 19, 55),
         "text_muted": (107, 114, 128),
-        "accent": (245, 158, 11),      # Honey Yellow
+        "accent": (245, 158, 11),
     },
     "science": {
-        "primary": (13, 148, 136),     # Science Teal
-        "secondary": (240, 253, 250),  # Mint/Cyan tint
+        "primary": (13, 148, 136),
+        "secondary": (240, 253, 250),
         "border": (20, 184, 166),
         "text_dark": (19, 78, 74),
         "text_muted": (71, 85, 105),
-        "accent": (249, 115, 22),      # Amber flame
+        "accent": (249, 115, 22),
     },
 }
 
@@ -285,6 +373,32 @@ def render_single_label(
                 placed_photo = True
         except Exception:
             placed_photo = False
+
+    if not placed_photo:
+        mascot_file = THEMES_ASSETS_DIR / f"{theme_key}.png"
+        if mascot_file.exists():
+            try:
+                with Image.open(mascot_file).convert("RGBA") as mascot_img:
+                    diam = avatar_radius * 2
+                    mascot_img = ImageOps.fit(mascot_img, (diam, diam), Image.Resampling.LANCZOS)
+                    mask = Image.new("L", (diam, diam), 0)
+                    mask_draw = ImageDraw.Draw(mask)
+                    mask_draw.ellipse([0, 0, diam, diam], fill=255)
+
+                    label.paste(mascot_img, (cx - avatar_radius, cy - avatar_radius), mask)
+                    draw.ellipse(
+                        [cx - avatar_radius - 4, cy - avatar_radius - 4, cx + avatar_radius + 4, cy + avatar_radius + 4],
+                        outline=theme["accent"],
+                        width=6,
+                    )
+                    draw.ellipse(
+                        [cx - avatar_radius - 8, cy - avatar_radius - 8, cx + avatar_radius + 8, cy + avatar_radius + 8],
+                        outline=theme["border"],
+                        width=3,
+                    )
+                    placed_photo = True
+            except Exception:
+                placed_photo = False
 
     if not placed_photo:
         _draw_theme_emblem(draw, theme_key, cx, cy, avatar_radius, theme)

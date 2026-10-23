@@ -121,15 +121,39 @@ def build_school_labels_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
 
 
 def build_school_themes_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
-    """Builds interactive theme selector for School Labels."""
+    """Builds categorized theme selector for School Labels (5 Boys, 5 Girls + Classic)."""
     lang = state.language
-    themes = ["classic", "football", "space", "cute", "science"]
     rows = []
-    for th in themes:
-        active = "✓ " if state.school_theme == th else ""
-        label = t(f"theme_{th}", lang)
-        rows.append([InlineKeyboardButton(f"{active}{label}", callback_data=f"set_school_theme:{th}")])
 
+    # Boys Section Header
+    rows.append([InlineKeyboardButton(f"─── {t('category_boys', lang)} ───", callback_data="noop")])
+    boys_themes = ["boy_football", "boy_superhero", "boy_space", "boy_cars", "boy_gamer"]
+    for i in range(0, len(boys_themes), 2):
+        row = []
+        for th in boys_themes[i:i+2]:
+            active = "✓ " if state.school_theme == th else ""
+            label = t(f"theme_{th}", lang)
+            row.append(InlineKeyboardButton(f"{active}{label}", callback_data=f"set_school_theme:{th}"))
+        rows.append(row)
+
+    # Girls Section Header
+    rows.append([InlineKeyboardButton(f"─── {t('category_girls', lang)} ───", callback_data="noop")])
+    girls_themes = ["girl_unicorn", "girl_princess", "girl_kitty", "girl_butterfly", "girl_artist"]
+    for i in range(0, len(girls_themes), 2):
+        row = []
+        for th in girls_themes[i:i+2]:
+            active = "✓ " if state.school_theme == th else ""
+            label = t(f"theme_{th}", lang)
+            row.append(InlineKeyboardButton(f"{active}{label}", callback_data=f"set_school_theme:{th}"))
+        rows.append(row)
+
+    # Classic / Minimalist
+    active_classic = "✓ " if state.school_theme in ("classic", "science", "cute", "football", "space") and state.school_theme not in (boys_themes + girls_themes) else ""
+    rows.append([
+        InlineKeyboardButton(f"{active_classic}{t('theme_classic', lang)}", callback_data="set_school_theme:classic"),
+    ])
+
+    # Back
     rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
