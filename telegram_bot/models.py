@@ -56,7 +56,8 @@ class PrintMasterState:
     filename: str = "image.png"
     
     # Navigation / Interaction State
-    current_menu: str = "main"  # 'main', 'presets_size', 'presets_grid', 'custom_size', 'margins', 'trimming', 'batch', 'poster_size', 'poster_overlap'
+    language: str = "en"  # 'en' or 'ar'
+    current_menu: str = "main"  # 'main', 'presets_size', 'presets_grid', 'custom_size', 'margins', 'trimming', 'batch', 'poster_size', 'poster_overlap', 'language'
     waiting_for_input: Optional[str] = None  # e.g., 'custom_width', 'custom_height', 'custom_gap', 'custom_batch', 'custom_margin', etc.
     last_preview_message_id: Optional[int] = None
     updated_at: float = field(default_factory=time.time)

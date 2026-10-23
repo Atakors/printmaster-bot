@@ -1,11 +1,24 @@
 """
 PrintMaster A4 - Telegram Inline Keyboard Builder
-Constructs sleek, touch-friendly interactive menus matching all desktop capabilities.
+Constructs sleek, touch-friendly interactive menus matching all desktop capabilities in English & Arabic.
 """
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from .models import PrintMasterState
 from .layout_engine import STANDARD_PRESETS, GRID_PRESETS, POSTER_PRESETS, MARGIN_PRESETS, BATCH_PRESETS
+from .i18n import t
+
+
+PRESET_TRANS_KEYS = {
+    "passport": "preset_passport",
+    "us_visa": "preset_us_visa",
+    "business_card": "preset_business_card",
+    "wallet": "preset_wallet",
+    "polaroid": "preset_polaroid",
+    "sticker_small": "preset_small_sticker",
+    "photo_10x15": "preset_photo_10x15",
+    "mini_id": "preset_mini_id",
+}
 
 
 def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
@@ -30,6 +43,8 @@ def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
         return build_poster_grid_menu(state)
     elif menu == "poster_overlap":
         return build_poster_overlap_menu(state)
+    elif menu == "language":
+        return build_language_menu(state)
     elif menu == "about":
         return build_about_menu(state)
     else:
@@ -37,90 +52,94 @@ def build_keyboard(state: PrintMasterState) -> InlineKeyboardMarkup:
 
 
 def build_main_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = []
 
     # Mode Selector
     if state.mode == "duplicator":
-        mode_btn = InlineKeyboardButton("🔀 Mode: 🖨 Duplicator (Grid)", callback_data="toggle_mode")
+        mode_btn = InlineKeyboardButton(t("mode_duplicator_btn", lang), callback_data="toggle_mode")
         rows.append([mode_btn])
 
         # Presets row
         rows.append([
-            InlineKeyboardButton("📐 Size Presets", callback_data="menu:presets_size"),
-            InlineKeyboardButton("📊 Quick Grids", callback_data="menu:presets_grid"),
+            InlineKeyboardButton(t("btn_size_presets", lang), callback_data="menu:presets_size"),
+            InlineKeyboardButton(t("btn_quick_grids", lang), callback_data="menu:presets_grid"),
         ])
 
         # Custom dimensions & gap
         w_cm = state.image_width_mm / 10.0
         h_cm = state.image_height_mm / 10.0
         rows.append([
-            InlineKeyboardButton(f"📏 Size: {w_cm:.1f}×{h_cm:.1f} cm", callback_data="menu:custom_size"),
-            InlineKeyboardButton(f"↔️ Gap: {state.gap_mm:.1f} mm", callback_data="menu:spacing"),
+            InlineKeyboardButton(t("btn_custom_size", lang, w=w_cm, h=h_cm), callback_data="menu:custom_size"),
+            InlineKeyboardButton(t("btn_gap", lang, gap=state.gap_mm), callback_data="menu:spacing"),
         ])
 
         # Page setup and Trimming
         orient_icon = "📄" if state.is_portrait else "📃"
-        orient_txt = "Portrait" if state.is_portrait else "Landscape"
         rows.append([
-            InlineKeyboardButton(f"{orient_icon} Page & Margins", callback_data="menu:page_margins"),
-            InlineKeyboardButton("✂️ Cuts & Borders", callback_data="menu:trimming"),
+            InlineKeyboardButton(t("btn_page_margins", lang, icon=orient_icon), callback_data="menu:page_margins"),
+            InlineKeyboardButton(t("btn_trimming", lang), callback_data="menu:trimming"),
         ])
 
         # Batch copies
-        batch_txt = f"{state.total_batch_copies} Copies" if state.total_batch_copies > 0 else "1 Page (Auto)"
+        batch_txt = t("batch_copies_option", lang, n=state.total_batch_copies) if state.total_batch_copies > 0 else t("batch_single_option", lang)
         rows.append([
-            InlineKeyboardButton(f"📦 Batch Export: {batch_txt}", callback_data="menu:batch_copies"),
+            InlineKeyboardButton(t("btn_batch", lang, text=batch_txt), callback_data="menu:batch_copies"),
         ])
 
     else:
         # Poster Mode
-        mode_btn = InlineKeyboardButton("🔀 Mode: 🧩 Poster Maker", callback_data="toggle_mode")
+        mode_btn = InlineKeyboardButton(t("mode_poster_btn", lang), callback_data="toggle_mode")
         rows.append([mode_btn])
 
         rows.append([
-            InlineKeyboardButton(f"🧩 Poster Grid ({state.poster_cols}×{state.poster_rows})", callback_data="menu:poster_grid"),
-            InlineKeyboardButton(f"📏 Overlap ({state.poster_overlap_mm:.0f} mm)", callback_data="menu:poster_overlap"),
+            InlineKeyboardButton(t("btn_poster_grid", lang, cols=state.poster_cols, rows=state.poster_rows), callback_data="menu:poster_grid"),
+            InlineKeyboardButton(t("btn_poster_overlap", lang, overlap=state.poster_overlap_mm), callback_data="menu:poster_overlap"),
         ])
 
         orient_icon = "📄" if state.is_portrait else "📃"
+        guide_status = t("on", lang) if state.poster_guides else t("off", lang)
         rows.append([
-            InlineKeyboardButton(f"{orient_icon} Orientation & Margins", callback_data="menu:page_margins"),
-            InlineKeyboardButton(f"🏷 Glue Guides: {'ON' if state.poster_guides else 'OFF'}", callback_data="toggle_poster_guides"),
+            InlineKeyboardButton(t("btn_page_margins", lang, icon=orient_icon), callback_data="menu:page_margins"),
+            InlineKeyboardButton(t("btn_glue_guides", lang, status=guide_status), callback_data="toggle_poster_guides"),
         ])
 
     # Export Buttons
     rows.append([
-        InlineKeyboardButton("📄 Export PDF (Vector)", callback_data="export:pdf"),
-        InlineKeyboardButton("🖼 Export 300 DPI", callback_data="export:image300"),
+        InlineKeyboardButton(t("btn_export_pdf", lang), callback_data="export:pdf"),
+        InlineKeyboardButton(t("btn_export_image300", lang), callback_data="export:image300"),
     ])
 
-    # Tutorial & About
+    # Tutorial & Language
     rows.append([
-        InlineKeyboardButton("📚 Beginner Tutorial", callback_data="tutorial:step_1"),
-        InlineKeyboardButton("ℹ️ About & Support", callback_data="menu:about"),
+        InlineKeyboardButton(t("btn_tutorial", lang), callback_data="tutorial:step_1"),
+        InlineKeyboardButton(t("btn_language", lang), callback_data="menu:language"),
     ])
 
-    # Utility row
+    # About & Refresh
     rows.append([
-        InlineKeyboardButton("🔄 Refresh Preview", callback_data="refresh_preview"),
+        InlineKeyboardButton(t("btn_about", lang), callback_data="menu:about"),
+        InlineKeyboardButton(t("btn_refresh", lang), callback_data="refresh_preview"),
     ])
 
     return InlineKeyboardMarkup(rows)
 
 
 def build_presets_size_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = []
     for p in STANDARD_PRESETS:
-        btn_txt = p["name"]
+        trans_key = PRESET_TRANS_KEYS.get(p["id"])
+        btn_txt = t(trans_key, lang) if trans_key else p["name"]
         rows.append([InlineKeyboardButton(btn_txt, callback_data=f"set_size_preset:{p['id']}")])
 
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 
 def build_presets_grid_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = []
-    # 3x3 layout of preset grid buttons
     current_row = []
     for g in GRID_PRESETS:
         current_row.append(InlineKeyboardButton(g["label"], callback_data=f"set_grid_preset:{g['rows']}_{g['cols']}"))
@@ -130,39 +149,41 @@ def build_presets_grid_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
     if current_row:
         rows.append(current_row)
 
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 
 def build_custom_size_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     w_cm = state.image_width_mm / 10.0
     h_cm = state.image_height_mm / 10.0
-    ratio_icon = "🔒 Locked" if state.lock_ratio else "🔓 Unlocked"
+    ratio_status = t("locked", lang) if state.lock_ratio else t("unlocked", lang)
 
     rows = [
         [
-            InlineKeyboardButton(f"Width: {w_cm:.1f} cm", callback_data="input:custom_width"),
-            InlineKeyboardButton(f"Height: {h_cm:.1f} cm", callback_data="input:custom_height"),
+            InlineKeyboardButton(t("btn_width", lang, w=w_cm), callback_data="input:custom_width"),
+            InlineKeyboardButton(t("btn_height", lang, h=h_cm), callback_data="input:custom_height"),
         ],
         [
-            InlineKeyboardButton(f"Aspect Ratio: {ratio_icon}", callback_data="toggle_lock_ratio"),
+            InlineKeyboardButton(t("btn_ratio", lang, status=ratio_status), callback_data="toggle_lock_ratio"),
         ],
         [
-            InlineKeyboardButton("➕ Width +5mm", callback_data="step_w:5"),
-            InlineKeyboardButton("➖ Width -5mm", callback_data="step_w:-5"),
+            InlineKeyboardButton(t("btn_step_w_plus", lang), callback_data="step_w:5"),
+            InlineKeyboardButton(t("btn_step_w_minus", lang), callback_data="step_w:-5"),
         ],
         [
-            InlineKeyboardButton("➕ Height +5mm", callback_data="step_h:5"),
-            InlineKeyboardButton("➖ Height -5mm", callback_data="step_h:-5"),
+            InlineKeyboardButton(t("btn_step_h_plus", lang), callback_data="step_h:5"),
+            InlineKeyboardButton(t("btn_step_h_minus", lang), callback_data="step_h:-5"),
         ],
         [
-            InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main"),
+            InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),
         ],
     ]
     return InlineKeyboardMarkup(rows)
 
 
 def build_spacing_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     preset_gaps = [0.0, 1.0, 2.0, 3.0, 5.0, 10.0]
     rows = []
     row = []
@@ -177,76 +198,79 @@ def build_spacing_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
         rows.append(row)
 
     rows.append([
-        InlineKeyboardButton("➕ Gap +0.5mm", callback_data="step_gap:0.5"),
-        InlineKeyboardButton("➖ Gap -0.5mm", callback_data="step_gap:-0.5"),
+        InlineKeyboardButton(t("btn_step_gap_plus", lang), callback_data="step_gap:0.5"),
+        InlineKeyboardButton(t("btn_step_gap_minus", lang), callback_data="step_gap:-0.5"),
     ])
-    rows.append([InlineKeyboardButton("✏️ Enter Custom Gap", callback_data="input:custom_gap")])
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    rows.append([InlineKeyboardButton(t("btn_enter_custom_gap", lang), callback_data="input:custom_gap")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 
 def build_page_margins_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
-    orient_str = "🔄 Portrait" if state.is_portrait else "🔄 Landscape"
-    guide_str = "👁 Margin Guide: ON" if state.show_margin_guide else "👁 Margin Guide: OFF"
+    lang = state.language
+    orient_str = t("portrait", lang) if state.is_portrait else t("landscape", lang)
+    guide_status = t("on", lang) if state.show_margin_guide else t("off", lang)
 
     rows = [
         [
-            InlineKeyboardButton(f"Orientation: {orient_str}", callback_data="toggle_orientation"),
+            InlineKeyboardButton(t("btn_toggle_orient", lang, status=orient_str), callback_data="toggle_orientation"),
         ],
         [
-            InlineKeyboardButton("Standard (10mm)", callback_data="set_margin:10"),
-            InlineKeyboardButton("Narrow (5mm)", callback_data="set_margin:5"),
+            InlineKeyboardButton(t("margin_standard", lang), callback_data="set_margin:10"),
+            InlineKeyboardButton(t("margin_narrow", lang), callback_data="set_margin:5"),
         ],
         [
-            InlineKeyboardButton("Borderless (0mm)", callback_data="set_margin:0"),
-            InlineKeyboardButton("Wide (20mm)", callback_data="set_margin:20"),
+            InlineKeyboardButton(t("margin_borderless", lang), callback_data="set_margin:0"),
+            InlineKeyboardButton(t("margin_wide", lang), callback_data="set_margin:20"),
         ],
         [
-            InlineKeyboardButton(guide_str, callback_data="toggle_margin_guide"),
+            InlineKeyboardButton(t("btn_margin_guide_toggle", lang, status=guide_status), callback_data="toggle_margin_guide"),
         ],
         [
-            InlineKeyboardButton("✏️ Enter Custom Margin (mm)", callback_data="input:custom_margin"),
+            InlineKeyboardButton(t("btn_enter_custom_margin", lang), callback_data="input:custom_margin"),
         ],
         [
-            InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main"),
+            InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),
         ],
     ]
     return InlineKeyboardMarkup(rows)
 
 
 def build_trimming_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
-    cut_str = "✂️ Cut Marks: ON" if state.show_cut_marks else "✂️ Cut Marks: OFF"
-    border_str = "🔲 Border: ON" if state.show_border else "🔲 Border: OFF"
-    rot_str = "🔄 Auto-Rotate 90°: ON" if state.auto_rotate else "🔄 Auto-Rotate 90°: OFF"
-    align_str = "🎯 Alignment: Center" if state.alignment == "center" else "📐 Alignment: Top-Left"
+    lang = state.language
+    cut_status = t("on", lang) if state.show_cut_marks else t("off", lang)
+    border_status = t("on", lang) if state.show_border else t("off", lang)
+    rot_status = t("on", lang) if state.auto_rotate else t("off", lang)
+    align_status = t("center", lang) if state.alignment == "center" else t("top_left", lang)
 
     rows = [
         [
-            InlineKeyboardButton(cut_str, callback_data="toggle_cut_marks"),
-            InlineKeyboardButton(border_str, callback_data="toggle_border"),
+            InlineKeyboardButton(t("btn_cut_marks_toggle", lang, status=cut_status), callback_data="toggle_cut_marks"),
+            InlineKeyboardButton(t("btn_border_toggle", lang, status=border_status), callback_data="toggle_border"),
         ],
         [
-            InlineKeyboardButton(f"Color: {state.border_color.title()}", callback_data="cycle_border_color"),
-            InlineKeyboardButton(f"Thick: {state.border_thickness_mm:.1f}mm", callback_data="cycle_border_thick"),
+            InlineKeyboardButton(t("btn_border_color", lang, color=state.border_color.title()), callback_data="cycle_border_color"),
+            InlineKeyboardButton(t("btn_border_thick", lang, thick=state.border_thickness_mm), callback_data="cycle_border_thick"),
         ],
         [
-            InlineKeyboardButton(rot_str, callback_data="toggle_auto_rotate"),
+            InlineKeyboardButton(t("btn_auto_rotate_toggle", lang, status=rot_status), callback_data="toggle_auto_rotate"),
         ],
         [
-            InlineKeyboardButton(align_str, callback_data="toggle_alignment"),
+            InlineKeyboardButton(t("btn_alignment_toggle", lang, align=align_status), callback_data="toggle_alignment"),
         ],
         [
-            InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main"),
+            InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),
         ],
     ]
     return InlineKeyboardMarkup(rows)
 
 
 def build_batch_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = []
     row = []
     for b in BATCH_PRESETS:
-        label = "1 Page (Auto)" if b == 0 else f"{b} Copies"
+        label = t("batch_single_option", lang) if b == 0 else t("batch_copies_option", lang, n=b)
         active = "✓ " if state.total_batch_copies == b else ""
         row.append(InlineKeyboardButton(f"{active}{label}", callback_data=f"set_batch:{b}"))
         if len(row) == 3:
@@ -255,14 +279,15 @@ def build_batch_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
     if row:
         rows.append(row)
 
-    limit_str = f"Limit per sheet: {state.max_copies}" if state.limit_copies else "Limit per sheet: OFF"
-    rows.append([InlineKeyboardButton(limit_str, callback_data="toggle_limit_copies")])
-    rows.append([InlineKeyboardButton("✏️ Enter Custom Total Batch", callback_data="input:custom_batch")])
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    limit_status = str(state.max_copies) if state.limit_copies else t("off", lang)
+    rows.append([InlineKeyboardButton(t("btn_limit_copies_toggle", lang, status=limit_status), callback_data="toggle_limit_copies")])
+    rows.append([InlineKeyboardButton(t("btn_enter_custom_batch", lang), callback_data="input:custom_batch")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 
 def build_poster_grid_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = []
     for p in POSTER_PRESETS:
         rows.append([
@@ -273,22 +298,23 @@ def build_poster_grid_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
         ])
 
     rows.append([
-        InlineKeyboardButton("➕ Col", callback_data="step_poster_col:1"),
-        InlineKeyboardButton("➖ Col", callback_data="step_poster_col:-1"),
-        InlineKeyboardButton("➕ Row", callback_data="step_poster_row:1"),
-        InlineKeyboardButton("➖ Row", callback_data="step_poster_row:-1"),
+        InlineKeyboardButton(t("btn_step_col_plus", lang), callback_data="step_poster_col:1"),
+        InlineKeyboardButton(t("btn_step_col_minus", lang), callback_data="step_poster_col:-1"),
+        InlineKeyboardButton(t("btn_step_row_plus", lang), callback_data="step_poster_row:1"),
+        InlineKeyboardButton(t("btn_step_row_minus", lang), callback_data="step_poster_row:-1"),
     ])
-    rows.append([InlineKeyboardButton("✏️ Enter Custom Grid (e.g. 3x4)", callback_data="input:custom_poster_grid")])
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    rows.append([InlineKeyboardButton(t("btn_enter_custom_poster_grid", lang), callback_data="input:custom_poster_grid")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
     return InlineKeyboardMarkup(rows)
 
 
 def build_poster_overlap_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     overlaps = [0.0, 5.0, 10.0, 15.0, 20.0]
     rows = []
     row = []
     for ov in overlaps:
-        label = "0 mm (Edge)" if ov == 0 else f"{ov:.0f} mm"
+        label = t("overlap_edge", lang) if ov == 0 else f"{ov:.0f} mm"
         active = "✓ " if abs(state.poster_overlap_mm - ov) < 0.01 else ""
         row.append(InlineKeyboardButton(f"{active}{label}", callback_data=f"set_overlap:{ov}"))
         if len(row) == 3:
@@ -297,31 +323,52 @@ def build_poster_overlap_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
     if row:
         rows.append(row)
 
+    guide_status = t("on", lang) if state.poster_guides else t("off", lang)
     rows.append([
         InlineKeyboardButton(
-            f"Glue Lines & Labels: {'✅ ON' if state.poster_guides else '❌ OFF'}",
+            t("btn_glue_lines_toggle", lang, status=guide_status),
             callback_data="toggle_poster_guides",
         )
     ])
-    rows.append([InlineKeyboardButton("✏️ Enter Custom Overlap (mm)", callback_data="input:custom_overlap")])
-    rows.append([InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main")])
+    rows.append([InlineKeyboardButton(t("btn_enter_custom_overlap", lang), callback_data="input:custom_overlap")])
+    rows.append([InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main")])
+    return InlineKeyboardMarkup(rows)
+
+
+def build_language_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    """Builds interactive language selector (English / العربية)."""
+    lang = state.language
+    en_mark = "✅ " if lang == "en" else ""
+    ar_mark = "✅ " if lang == "ar" else ""
+
+    rows = [
+        [
+            InlineKeyboardButton(f"{en_mark}🇬🇧 English", callback_data="set_lang:en"),
+            InlineKeyboardButton(f"{ar_mark}🇸🇦 العربية", callback_data="set_lang:ar"),
+        ],
+        [
+            InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),
+        ],
+    ]
     return InlineKeyboardMarkup(rows)
 
 
 def build_about_menu(state: PrintMasterState) -> InlineKeyboardMarkup:
+    lang = state.language
     rows = [
         [
-            InlineKeyboardButton("📚 Beginner Tutorial", callback_data="tutorial:step_1"),
+            InlineKeyboardButton(t("btn_tutorial", lang), callback_data="tutorial:step_1"),
+            InlineKeyboardButton(t("btn_language", lang), callback_data="menu:language"),
         ],
         [
-            InlineKeyboardButton("✈️ Developer Telegram", url="https://t.me/aitadz"),
-            InlineKeyboardButton("📘 Facebook", url="https://www.facebook.com/aitadz.pro"),
+            InlineKeyboardButton(t("btn_dev_telegram", lang), url="https://t.me/aitadz"),
+            InlineKeyboardButton(t("btn_facebook", lang), url="https://www.facebook.com/aitadz.pro"),
         ],
         [
-            InlineKeyboardButton("💬 WhatsApp Support", url="https://wa.me/213558655085"),
+            InlineKeyboardButton(t("btn_whatsapp", lang), url="https://wa.me/213558655085"),
         ],
         [
-            InlineKeyboardButton("« Back to Main Menu", callback_data="menu:main"),
+            InlineKeyboardButton(t("btn_back_main", lang), callback_data="menu:main"),
         ],
     ]
     return InlineKeyboardMarkup(rows)

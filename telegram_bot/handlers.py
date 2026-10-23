@@ -8,7 +8,7 @@ import io
 import re
 import shutil
 import logging
-from typing import Dict
+from typing import Dict, Any, Optional
 from PIL import Image
 
 from telegram import Update, InputMediaPhoto
@@ -27,6 +27,7 @@ from .pdf_exporter import export_pdf
 from .keyboards import build_keyboard
 from .config import TEMP_DIR, DEFAULT_SAMPLE_IMAGE, ADMIN_ID
 from .tutorial import get_tutorial_step, get_tutorial_faq
+from .i18n import t
 from .database import (
     init_db,
     record_user_interaction,
@@ -36,6 +37,8 @@ from .database import (
     get_top_users,
     get_recent_activity,
     export_users_csv,
+    set_user_language,
+    get_user_language,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,10 +50,18 @@ init_db()
 USER_SESSIONS: Dict[int, PrintMasterState] = {}
 
 
-def get_user_state(user_id: int, chat_id: int) -> PrintMasterState:
-    """Retrieves or initializes session state for a user."""
+def get_user_state(user_id: int, chat_id: int, user: Optional[Any] = None) -> PrintMasterState:
+    """Retrieves or initializes session state for a user, maintaining language preference."""
     if user_id not in USER_SESSIONS:
         state = PrintMasterState(user_id=user_id, chat_id=chat_id)
+        # Determine language from DB or Telegram user locale
+        db_lang = get_user_language(user_id)
+        if db_lang:
+            state.language = db_lang
+        elif user and getattr(user, "language_code", None) and str(user.language_code).lower().startswith("ar"):
+            state.language = "ar"
+            set_user_language(user_id, "ar")
+
         # Initialize with sample image if available
         if DEFAULT_SAMPLE_IMAGE.exists():
             dest = TEMP_DIR / f"init_{user_id}.jpg"
@@ -68,8 +79,9 @@ def get_user_state(user_id: int, chat_id: int) -> PrintMasterState:
 
 
 def format_status_caption(state: PrintMasterState) -> str:
-    """Generates an informative, polished Markdown caption for the preview message."""
-    orient = "Portrait (210 × 297 mm)" if state.is_portrait else "Landscape (297 × 210 mm)"
+    """Generates an informative, polished Markdown caption for the preview message in active language."""
+    lang = state.language
+    orient = t("portrait_full", lang) if state.is_portrait else t("landscape_full", lang)
     margins = f"T:{state.margin_top_mm:.0f} B:{state.margin_bottom_mm:.0f} L:{state.margin_left_mm:.0f} R:{state.margin_right_mm:.0f} mm"
 
     if state.mode == "duplicator":
@@ -78,35 +90,38 @@ def format_status_caption(state: PrintMasterState) -> str:
         h_cm = state.image_height_mm / 10.0
 
         batch_info = (
-            f"• *Total Batch:* `{state.total_batch_copies}` copies across `{layout['total_sheets']}` A4 sheets"
+            t("caption_batch_multi", lang, copies=state.total_batch_copies, sheets=layout["total_sheets"])
             if state.total_batch_copies > 0
-            else "• *Batch:* Single A4 Sheet"
+            else t("caption_batch_single", lang)
         )
 
+        cuts_str = t("on", lang) if state.show_cut_marks else t("off", lang)
+        border_str = t("on", lang) if state.show_border else t("off", lang)
+        rot_str = t("on", lang) if state.auto_rotate else t("off", lang)
+
         caption = (
-            f"✨ *PrintMaster A4 — Duplicator Mode*\n\n"
-            f"📊 *Grid Layout:* `{layout['cols']} × {layout['rows']}` ({layout['drawn_per_page']} copies / page)\n"
-            f"📏 *Image Size:* `{w_cm:.1f} × {h_cm:.1f} cm`\n"
-            f"↔️ *Image Spacing:* `{state.gap_mm:.1f} mm`\n"
-            f"📄 *Page Setup:* {orient}\n"
-            f"📐 *Margins:* `{margins}`\n"
+            f"{t('caption_duplicator_header', lang)}\n\n"
+            f"{t('caption_grid', lang, cols=layout['cols'], rows=layout['rows'], copies=layout['drawn_per_page'])}\n"
+            f"{t('caption_size', lang, w=w_cm, h=h_cm)}\n"
+            f"{t('caption_spacing', lang, gap=state.gap_mm)}\n"
+            f"{t('caption_page', lang, orient=orient)}\n"
+            f"{t('caption_margins', lang, margins=margins)}\n"
             f"{batch_info}\n"
-            f"✂️ *Options:* Cut Marks: `{'ON' if state.show_cut_marks else 'OFF'}` | "
-            f"Border: `{'ON' if state.show_border else 'OFF'}` | "
-            f"Auto-Rotate: `{'ON' if state.auto_rotate else 'OFF'}`\n\n"
-            f"💡 _Tap the buttons below to customize, or send any new photo!_"
+            f"{t('caption_options', lang, cuts=cuts_str, border=border_str, rotate=rot_str)}\n\n"
+            f"{t('caption_footer_hint', lang)}"
         )
     else:
         poster = calculate_poster_layout(state)
+        guides_str = t("on", lang) if state.poster_guides else t("off", lang)
         caption = (
-            f"✨ *PrintMaster A4 — Poster Maker*\n\n"
-            f"🧩 *Tiling:* `{poster['cols']} × {poster['rows']}` (`{poster['total_sheets']}` A4 Sheets)\n"
-            f"📐 *Overall Poster Size:* `~{poster['total_w_cm']:.1f} × {poster['total_h_cm']:.1f} cm`\n"
-            f"📏 *Tile Overlap:* `{state.poster_overlap_mm:.0f} mm`\n"
-            f"🏷 *Glue Guidelines & Numbers:* `{'ON' if state.poster_guides else 'OFF'}`\n"
-            f"📄 *Sheet Size:* {orient}\n"
-            f"📐 *Print Margin:* `{margins}`\n\n"
-            f"💡 _Each tile will be scaled and printed onto its own A4 sheet with overlap guides!_"
+            f"{t('caption_poster_header', lang)}\n\n"
+            f"{t('caption_tiling', lang, cols=poster['cols'], rows=poster['rows'], sheets=poster['total_sheets'])}\n"
+            f"{t('caption_poster_size', lang, w=poster['total_w_cm'], h=poster['total_h_cm'])}\n"
+            f"{t('caption_overlap', lang, overlap=state.poster_overlap_mm)}\n"
+            f"{t('caption_guides', lang, status=guides_str)}\n"
+            f"{t('caption_poster_sheet', lang, orient=orient)}\n"
+            f"{t('caption_poster_margin', lang, margins=margins)}\n\n"
+            f"{t('caption_poster_hint', lang)}"
         )
 
     return caption
@@ -227,18 +242,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     record_user_interaction(user, "start", "/start command")
 
-    state = get_user_state(user.id, chat_id)
+    state = get_user_state(user.id, chat_id, user)
     state.current_menu = "main"
     state.waiting_for_input = None
+    lang = state.language
 
     welcome_text = (
-        f"👋 *Welcome {user.first_name} to PrintMaster A4 Bot!*\n\n"
-        f"🖨 *The complete printing suite in Telegram:*\n"
-        f"• *Image Duplicator:* Place multiple copies of photos, stickers, business cards, or passport photos on an A4 sheet with cutting marks.\n"
-        f"• *Poster Maker:* Split a large photo across multiple A4 sheets for giant wall posters with overlap glue lines.\n"
-        f"• *Vector PDF & 300 DPI Export:* Export print-ready documents with zero quality loss.\n\n"
-        f"🐣 *New here?* Type /tutorial or tap *'📚 Beginner Tutorial'* below for a 1-minute visual guide!\n\n"
-        f"📸 *Send me any image* to start duplicating or creating a poster, or use the loaded sample image below:"
+        f"{t('welcome_greeting', lang, name=user.first_name)}\n\n"
+        f"{t('welcome_body', lang)}"
     )
 
     await update.message.reply_text(welcome_text, parse_mode=ParseMode.MARKDOWN)
@@ -252,30 +263,33 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state.last_preview_message_id = sent_msg.message_id
 
 
+async def language_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles /language or /lang command to show language switcher."""
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    state = get_user_state(user.id, chat_id, user)
+    state.current_menu = "language"
+    kbd = build_keyboard(state)
+    await update.message.reply_text(t("lang_switch_title", state.language), parse_mode=ParseMode.MARKDOWN, reply_markup=kbd)
+
+
 async def tutorial_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /tutorial command to launch the interactive beginner guide."""
     user = update.effective_user
+    chat_id = update.effective_chat.id
+    state = get_user_state(user.id, chat_id, user)
     record_user_interaction(user, "tutorial", "/tutorial command")
-    text, kbd = get_tutorial_step(1)
+    text, kbd = get_tutorial_step(1, lang=state.language)
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kbd)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles /help command."""
     user = update.effective_user
+    chat_id = update.effective_chat.id
+    state = get_user_state(user.id, chat_id, user)
     record_user_interaction(user, "help", "/help command")
-    help_text = (
-        f"📖 *PrintMaster A4 Help & Instructions*\n\n"
-        f"1. *Load an Image:* Simply send any photo or image document directly into this chat.\n"
-        f"2. *Duplicator Mode:* Choose standard photo sizes (Passport, Visa, Cards), quick grids (2x2, 3x2, etc.), or adjust width, height, and spacing.\n"
-        f"3. *Batch Copies:* Enter total copies (e.g. 50 or 100) to generate a multi-page PDF spanning as many A4 sheets as needed.\n"
-        f"4. *Poster Mode:* Choose grid layout (2x2, 3x3, etc.) to print huge posters with glue guides.\n"
-        f"5. *Export:* Click *Export PDF* for vector printing or *Export 300 DPI* for ultra high-res image.\n\n"
-        f"🐣 *Need a beginner walkthrough?* Send /tutorial to open the interactive step-by-step guide!\n"
-        f"👑 *Admin Dashboard:* Send /admin or /stats to view usage stats and user list.\n"
-        f"Use /start to reset or reload the menu anytime."
-    )
-    await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+    await update.message.reply_text(t("help_text", state.language), parse_mode=ParseMode.MARKDOWN)
 
 
 async def handle_photo_upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -400,7 +414,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         action = data.split(":", 1)[1]
         if action.startswith("step_"):
             step_idx = int(action.split("_")[1])
-            text, kbd = get_tutorial_step(step_idx)
+            text, kbd = get_tutorial_step(step_idx, lang=state.language)
             if query.message and query.message.text:
                 await query.message.edit_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kbd)
             else:
@@ -408,7 +422,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             return
 
         elif action == "faq":
-            text, kbd = get_tutorial_faq()
+            text, kbd = get_tutorial_faq(lang=state.language)
             if query.message and query.message.text:
                 await query.message.edit_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kbd)
             else:
@@ -436,7 +450,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 
                 sent_msg = await query.message.reply_photo(
                     photo=preview_buf,
-                    caption="🎉 *Demo sticker loaded successfully!*\nHere is your live preview. Try customizing it below:\n\n" + caption,
+                    caption=caption,
                     parse_mode=ParseMode.MARKDOWN,
                     reply_markup=kbd,
                 )
@@ -444,6 +458,17 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             else:
                 await query.message.reply_text("Sample image not found on server.")
             return
+
+    # Language Switcher
+    if data.startswith("set_lang:"):
+        new_lang = data.split(":", 1)[1]
+        state.language = new_lang
+        set_user_language(user.id, new_lang)
+        record_user_interaction(user, "set_language", new_lang)
+        await query.answer(t("lang_switched", new_lang), show_alert=True)
+        state.current_menu = "main"
+        await _update_view(query, state)
+        return
 
     # 1. Navigation Menus
     if data.startswith("menu:"):
@@ -615,16 +640,17 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         input_type = data.split(":", 1)[1]
         state.waiting_for_input = input_type
         prompt_map = {
-            "custom_width": "Enter desired image width in cm or mm (e.g. `5 cm` or `50 mm`):",
-            "custom_height": "Enter desired image height in cm or mm (e.g. `5 cm` or `50 mm`):",
-            "custom_gap": "Enter spacing/gap in mm (e.g. `2.5 mm`):",
-            "custom_margin": "Enter page margin in mm (e.g. `10 mm` or `5 mm`):",
-            "custom_batch": "Enter total batch copies (e.g. `100` or `250`):",
-            "custom_poster_grid": "Enter columns and rows (e.g. `3x3` or `2x4`):",
-            "custom_overlap": "Enter poster overlap in mm (e.g. `15 mm`):",
+            "custom_width": t("prompt_width", state.language),
+            "custom_height": t("prompt_height", state.language),
+            "custom_gap": t("prompt_gap", state.language),
+            "custom_margin": t("prompt_margin", state.language),
+            "custom_batch": t("prompt_batch", state.language),
+            "custom_poster_grid": t("prompt_poster_grid", state.language),
+            "custom_overlap": t("prompt_poster_overlap", state.language),
         }
         msg = prompt_map.get(input_type, "Please type the value:")
-        await query.message.reply_text(f"✏️ *Input Required:*\n{msg}\n\n_Type your reply or send /cancel._", parse_mode=ParseMode.MARKDOWN)
+        cancel_hint = t("input_cancel_hint", state.language)
+        await query.message.reply_text(f"{msg}{cancel_hint}", parse_mode=ParseMode.MARKDOWN)
         return
 
     # 13. Refresh Preview
@@ -646,7 +672,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         await query.message.reply_document(
             document=pdf_buf,
             filename=fname,
-            caption="📄 *Here is your print-ready vector PDF document!* Exact scale for A4 paper.",
+            caption=t("export_pdf_ready", state.language),
             parse_mode=ParseMode.MARKDOWN,
         )
         return
@@ -660,7 +686,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         await query.message.reply_document(
             document=img_buf,
             filename=fname,
-            caption="🖼 *Here is your ultra high-resolution 300 DPI image!* Perfect for photo printing.",
+            caption=t("export_image_ready", state.language),
             parse_mode=ParseMode.MARKDOWN,
         )
         return
@@ -670,14 +696,14 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles text replies when waiting for custom dimensions or numbers."""
     user = update.effective_user
     chat_id = update.effective_chat.id
-    state = get_user_state(user.id, chat_id)
+    state = get_user_state(user.id, chat_id, user)
 
     text = update.message.text.strip()
 
     if text.startswith("/"):
         if text == "/cancel":
             state.waiting_for_input = None
-            await update.message.reply_text("✅ Cancelled. Returning to menu.")
+            await update.message.reply_text(t("input_cancelled", state.language))
             return
 
     if not state.waiting_for_input:
@@ -700,27 +726,34 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     state.image_height_mm = val_mm
                     if state.lock_ratio and state.aspect_ratio > 0:
                         state.image_width_mm = round(state.image_height_mm * state.aspect_ratio, 1)
-                await update.message.reply_text(f"✅ Dimension set to `{val_mm/10:.1f} cm` (`{val_mm:.1f} mm`)", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text(f"✅ `{val_mm/10:.1f} cm` (`{val_mm:.1f} mm`)", parse_mode=ParseMode.MARKDOWN)
             else:
-                await update.message.reply_text("❌ Could not parse dimension. Example: `5 cm` or `45 mm`.")
+                await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "custom_gap":
             val_mm = _parse_dimension_to_mm(text)
             if val_mm is not None and val_mm >= 0:
                 state.gap_mm = val_mm
-                await update.message.reply_text(f"✅ Gap set to `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text(f"✅ `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "custom_margin":
             val_mm = _parse_dimension_to_mm(text)
             if val_mm is not None and val_mm >= 0:
                 state.set_uniform_margin(val_mm)
-                await update.message.reply_text(f"✅ Margins set to `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text(f"✅ `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "custom_batch":
             nums = re.findall(r"\d+", text)
             if nums:
                 state.total_batch_copies = int(nums[0])
-                await update.message.reply_text(f"✅ Total batch set to `{state.total_batch_copies}` copies", parse_mode=ParseMode.MARKDOWN)
+                batch_label = t("batch_copies_option", state.language, n=state.total_batch_copies)
+                await update.message.reply_text(f"✅ {batch_label}", parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "custom_poster_grid":
             match = re.search(r"(\d+)\s*[xX×*]\s*(\d+)", text)
@@ -728,15 +761,17 @@ async def handle_text_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 c, r = int(match.group(1)), int(match.group(2))
                 state.poster_cols = max(1, min(12, c))
                 state.poster_rows = max(1, min(12, r))
-                await update.message.reply_text(f"✅ Poster grid set to `{state.poster_cols} × {state.poster_rows}`", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text(f"✅ `{state.poster_cols} × {state.poster_rows}`", parse_mode=ParseMode.MARKDOWN)
             else:
-                await update.message.reply_text("❌ Format should be Cols x Rows (e.g. `3x3` or `2x4`).")
+                await update.message.reply_text(t("input_invalid_grid", state.language), parse_mode=ParseMode.MARKDOWN)
 
         elif input_type == "custom_overlap":
             val_mm = _parse_dimension_to_mm(text)
             if val_mm is not None and val_mm >= 0:
                 state.poster_overlap_mm = val_mm
-                await update.message.reply_text(f"✅ Overlap set to `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+                await update.message.reply_text(f"✅ `{val_mm:.1f} mm`", parse_mode=ParseMode.MARKDOWN)
+            else:
+                await update.message.reply_text(t("input_invalid_number", state.language), parse_mode=ParseMode.MARKDOWN)
 
     except Exception as e:
         logger.exception("Error parsing text input: %s", e)

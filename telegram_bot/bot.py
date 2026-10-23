@@ -32,6 +32,7 @@ from telegram_bot.handlers import (
     start_command,
     help_command,
     tutorial_command,
+    language_command,
     admin_command,
     handle_photo_upload,
     handle_callback_query,
@@ -95,6 +96,9 @@ def main():
     # Commands
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("tutorial", tutorial_command))
+    app.add_handler(CommandHandler("language", language_command))
+    app.add_handler(CommandHandler("lang", language_command))
+    app.add_handler(CommandHandler("ar", language_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("admin", admin_command))
     app.add_handler(CommandHandler("stats", admin_command))

@@ -34,6 +34,7 @@ def init_db():
                 first_name TEXT,
                 last_name TEXT,
                 language_code TEXT,
+                bot_language TEXT DEFAULT 'en',
                 first_seen TIMESTAMP,
                 last_seen TIMESTAMP,
                 interaction_count INTEGER DEFAULT 1,
@@ -42,6 +43,12 @@ def init_db():
                 image_exports INTEGER DEFAULT 0
             )
         """)
+
+        # Migration: ensure bot_language column exists if table was created previously
+        cursor.execute("PRAGMA table_info(users)")
+        existing_cols = [r["name"] for r in cursor.fetchall()]
+        if "bot_language" not in existing_cols:
+            cursor.execute("ALTER TABLE users ADD COLUMN bot_language TEXT DEFAULT 'en'")
 
         # Detailed event activity log
         cursor.execute("""
@@ -120,6 +127,31 @@ def record_export(user_id: int, export_type: str):
         elif export_type == "image":
             cursor.execute("UPDATE users SET image_exports = image_exports + 1 WHERE user_id = ?", (user_id,))
         conn.commit()
+
+
+def set_user_language(user_id: int, lang: str):
+    """Updates the user's preferred bot interface language."""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET bot_language = ? WHERE user_id = ?", (lang, user_id))
+        conn.commit()
+
+
+def get_user_language(user_id: int, default_lang: str = "en") -> str:
+    """Retrieves the preferred language for a user from database, falling back to Telegram locale or default."""
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT bot_language, language_code FROM users WHERE user_id = ?", (user_id,))
+            row = cursor.fetchone()
+            if row and row["bot_language"]:
+                return row["bot_language"]
+            if row and row["language_code"] and str(row["language_code"]).lower().startswith("ar"):
+                return "ar"
+    except Exception:
+        pass
+    return default_lang
+
 
 
 def get_overview_stats() -> Dict[str, Any]:

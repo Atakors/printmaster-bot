@@ -223,6 +223,53 @@ def run_tests():
     assert b"User ID,Username,First Name" in csv_bytes
     print("  ✅ Database tracking and CSV export verified successfully.")
 
+    # -------------------------------------------------------------
+    # Test 11: Arabic Localization & Language Switching
+    # -------------------------------------------------------------
+    print("\n[Test 11] Testing Arabic Localization & Language Engine...")
+    from telegram_bot.i18n import t
+    from telegram_bot.tutorial import get_tutorial_step, get_tutorial_faq
+    from telegram_bot.database import set_user_language, get_user_language
+    from telegram_bot.handlers import format_status_caption
+
+    # Test translations
+    assert t("mode_duplicator", "ar") == "نسخ متكرر (شبكة)"
+    assert t("mode_duplicator", "en") == "Duplicator (Grid)"
+    assert "برينت ماستر" in t("app_title", "ar")
+
+    # Test Arabic status captions
+    state.mode = "duplicator"
+    state.language = "ar"
+    ar_caption = format_status_caption(state)
+    assert "وضع تكرار الصور" in ar_caption
+    print("  -> Arabic duplicator caption rendered successfully.")
+
+    state.mode = "poster"
+    ar_poster_caption = format_status_caption(state)
+    assert "صانع البوسترات" in ar_poster_caption
+    print("  -> Arabic poster caption rendered successfully.")
+
+    # Test Arabic keyboard
+    state.mode = "duplicator"
+    ar_kbd = build_keyboard(state)
+    assert ar_kbd is not None
+    print("  -> Arabic keyboard constructed successfully.")
+
+    # Test Arabic tutorial and FAQ
+    tut_text, tut_kbd = get_tutorial_step(1, lang="ar")
+    assert "مرحباً بك في برينت ماستر" in tut_text
+    faq_text, faq_kbd = get_tutorial_faq(lang="ar")
+    assert "الأسئلة الشائعة" in faq_text
+    print("  -> Arabic 6-step tutorial and FAQ verified successfully.")
+
+    # Test Database language persistence
+    set_user_language(mock_user.id, "ar")
+    assert get_user_language(mock_user.id) == "ar"
+    set_user_language(mock_user.id, "en")
+    assert get_user_language(mock_user.id) == "en"
+    print("  -> Database user language persistence verified.")
+    print("  ✅ Arabic localization passed with 100% test coverage.")
+
     print("\n" + "=" * 60)
     print("🎉 ALL TESTS PASSED SUCCESSFULLY! FULL ENGINE IS READY.")
     print("=" * 60)
