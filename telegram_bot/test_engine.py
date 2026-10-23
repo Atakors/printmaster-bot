@@ -333,7 +333,7 @@ def run_tests():
             state,
             subject="الرياضيات",
         )
-        assert sticker_img.size == (760, 440), f"Sticker size mismatch: {sticker_img.size}"
+        assert sticker_img.size == (1039, 590), f"Sticker size mismatch: {sticker_img.size}"
         print(f"  -> Sticker rendered for theme '{theme_id}': {sticker_img.size}")
 
     # Test Sheet Preview Generation (96 DPI)
